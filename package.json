@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/ocpi/ocpi-tool/issues"
   },
-  "homepage": "https://github.com/ocpi/ocpi-tool#readme"
+  "homepage": "https://github.com/ocpi/ocpi-tool#readme",
+  "devDependencies": {
+    "typescript": "^4.9.3"
+  }
 }
