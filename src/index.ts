@@ -1,13 +1,23 @@
+import axios from "axios";
 import { Command } from "commander";
 import { V211Token } from "./ocpimsgs/token.schema";
 
-const aargh: V211Token = {
-  uid: "AAAAAAAAAAAAAA",
-  type: "OTHER",
-};
+const use = async (platformVersionsUrl: string, token?: string) => {
+  // OK, we're going to start a session with a certain platform. So we have to:
+  //  * fetch versions
+  //  * pick the 2.1.1 version
+  //  * fetch the endpoints
+  //  * store those
+  if (!token) {
+    throw new Error('A token is required with "ocpi login"');
+  }
 
-const use = (platformVersionsUrl: string) => {
   console.log("Aye, logging in, howdyhey");
+  const response = await axios.get(platformVersionsUrl, {
+    headers: { Authorization: `Token ${token}` },
+  });
+
+  console.log("Got HTTP response", response);
 };
 
 const getAPage = (moduleName: string) => {
@@ -17,9 +27,16 @@ const getAPage = (moduleName: string) => {
 const program = new Command();
 
 program
-  .command("login <URL>")
+  .command("login")
   .description("Log in to an OCPI platform")
-  .action((url: string) => use(url));
+  .argument("url", "The versions URL for the platform to log in to")
+  .option(
+    "--token <token>",
+    "The authentication token for communication with the other platform",
+    undefined
+  )
+  .action((url: string, options) => use(url, options.token));
+
 program
   .command("get <module>")
   .description("Fetch a page of data of a certain OCPI module")
