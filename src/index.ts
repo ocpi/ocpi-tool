@@ -1,6 +1,14 @@
 import axios from "axios";
 import { Command } from "commander";
-import { V211Token } from "./ocpimsgs/token.schema";
+import { V211Version as V211ListedVersion } from "./ocpimsgs/version.schema";
+import { V211Version } from "./ocpimsgs/versionGetDetailResponse.schema";
+
+interface OcpiResponse<T> {
+  data: T;
+  status_code: number;
+  status_message?: string;
+  timestamp: string;
+}
 
 const use = async (platformVersionsUrl: string, token?: string) => {
   // OK, we're going to start a session with a certain platform. So we have to:
@@ -13,11 +21,33 @@ const use = async (platformVersionsUrl: string, token?: string) => {
   }
 
   console.log("Aye, logging in, howdyhey");
-  const response = await axios.get(platformVersionsUrl, {
-    headers: { Authorization: `Token ${token}` },
-  });
+  await axios
+    .get(platformVersionsUrl, {
+      headers: { Authorization: `Token ${token}` },
+    })
+    .then((resp) => {
+      const ocpiResponse = resp.data as OcpiResponse<any>;
 
-  console.log("Got HTTP response", response);
+      console.log(`ocpiResponse: ${ocpiResponse}`);
+
+      if (Array.isArray(ocpiResponse.data)) {
+        const versions = ocpiResponse.data as V211ListedVersion[];
+        console.log(`It's a versions endpoint; versions is ${versions}`);
+      } else if (
+        typeof ocpiResponse.data == "object" &&
+        ocpiResponse.data.version
+      ) {
+        const version = ocpiResponse.data as V211Version;
+        console.log(`It's a version endpoint; version is ${version}`);
+      }
+    })
+    .catch((error) => {
+      if (error.response) {
+        throw new Error(
+          `Failed to make OCPI request to platform: HTTP status is [${error.response.status}]; body is [${error.response.data}]`
+        );
+      }
+    });
 };
 
 const getAPage = (moduleName: string) => {
