@@ -1,4 +1,5 @@
 import axios, { AxiosError } from "axios";
+import { readFile, writeFile } from "node:fs/promises";
 
 export interface OcpiResponse<T> {
   data: T;
@@ -7,7 +8,33 @@ export interface OcpiResponse<T> {
   timestamp: string;
 }
 
+export interface OcpiEndpoint {
+  identifier: string;
+  url: string;
+  role?: "SENDER" | "RECEIVER";
+}
+
+export interface OcpiSession {
+  token: string;
+  version: "2.1.1" | "2.0" | "2.1";
+  endpoints: OcpiEndpoint[];
+}
+
+export const SESSION_FILE =
+  process.env.OCPI_SESSION_FILE ?? `${process.env.HOME}/.ocpi`;
+
 export async function ocpiRequest<T>(
+  method: "get" | "post" | "put" | "delete",
+  url: string
+): Promise<OcpiResponse<T>> {
+  const sessionFileContents = await readFile(SESSION_FILE, {
+    encoding: "utf-8",
+  });
+  const sessionObject = JSON.parse(sessionFileContents);
+  return ocpiRequestWithGivenToken(method, url, sessionObject.session?.token);
+}
+
+export async function ocpiRequestWithGivenToken<T>(
   method: "get" | "post" | "put" | "delete",
   url: string,
   token: string
@@ -29,4 +56,8 @@ export async function ocpiRequest<T>(
 
   const ocpiResponse = resp.data as OcpiResponse<T>;
   return ocpiResponse;
+}
+
+export async function setSession(session: OcpiSession): Promise<void> {
+  return writeFile(SESSION_FILE, JSON.stringify({ session }));
 }

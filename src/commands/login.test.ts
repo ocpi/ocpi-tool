@@ -1,7 +1,8 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { describe, expect, jest, test } from "@jest/globals";
 import { OcpiResponse } from "../ocpi-request";
-import { login, SESSION_FILE } from "./login";
+import { login } from "./login";
+import { SESSION_FILE } from "../ocpi-request";
 import { V211Version } from "../ocpimsgs/version.schema";
 import { readFile } from "node:fs/promises";
 

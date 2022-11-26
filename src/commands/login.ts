@@ -2,10 +2,11 @@ import { V211Version as V211ListedVersion } from "../ocpimsgs/version.schema";
 import { writeFile } from "node:fs/promises";
 
 import { V211Version } from "../ocpimsgs/versionGetDetailResponse.schema";
-import { ocpiRequest } from "../ocpi-request";
-
-export const SESSION_FILE =
-  process.env.OCPI_SESSION_FILE ?? `${process.env.HOME}/.ocpi`;
+import {
+  OcpiEndpoint,
+  ocpiRequestWithGivenToken,
+  setSession,
+} from "../ocpi-request";
 
 export const login = async (platformVersionsUrl: string, token?: string) => {
   // OK, we're going to start a session with a certain platform. So we have to:
@@ -17,7 +18,7 @@ export const login = async (platformVersionsUrl: string, token?: string) => {
     throw new Error('A token is required with "ocpi login"');
   }
 
-  const ocpiResponse = await ocpiRequest<V211Version>(
+  const ocpiResponse = await ocpiRequestWithGivenToken<V211Version>(
     "get",
     platformVersionsUrl,
     token
@@ -35,10 +36,11 @@ export const login = async (platformVersionsUrl: string, token?: string) => {
   ) {
     const version = ocpiResponse.data as V211Version;
     console.log(`It's a version endpoint; version is ${version}`);
-    await writeFile(
-      SESSION_FILE,
-      JSON.stringify({ session: { ...ocpiResponse.data, token } })
-    );
+    await setSession({
+      version: version.version,
+      endpoints: version.endpoints as unknown as OcpiEndpoint[],
+      token,
+    });
     console.log(`Logged in to ${platformVersionsUrl}`);
   }
 };
