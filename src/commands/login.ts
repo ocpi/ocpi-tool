@@ -4,13 +4,6 @@ import { writeFile } from "node:fs/promises";
 import { V211Version } from "../ocpimsgs/versionGetDetailResponse.schema";
 import { ocpiRequest } from "../ocpi-request";
 
-export interface OcpiResponse<T> {
-  data: T;
-  status_code: number;
-  status_message?: string;
-  timestamp: string;
-}
-
 export const SESSION_FILE =
   process.env.OCPI_SESSION_FILE ?? `${process.env.HOME}/.ocpi`;
 

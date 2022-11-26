@@ -1,5 +1,11 @@
-import { OcpiResponse } from "./commands/login";
 import axios, { AxiosError } from "axios";
+
+export interface OcpiResponse<T> {
+  data: T;
+  status_code: number;
+  status_message?: string;
+  timestamp: string;
+}
 
 export async function ocpiRequest<T>(
   method: "get" | "post" | "put" | "delete",

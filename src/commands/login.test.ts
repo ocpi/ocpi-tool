@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { describe, expect, jest, test } from "@jest/globals";
-import { login, OcpiResponse, SESSION_FILE } from "./login";
+import { OcpiResponse } from "../ocpi-request";
+import { login, SESSION_FILE } from "./login";
 import { V211Version } from "../ocpimsgs/version.schema";
 import { readFile } from "node:fs/promises";
 
@@ -10,7 +11,7 @@ const mockXios = axios as jest.Mocked<typeof axios>;
 
 describe("The login command", () => {
   test("throws an exception if we pass it a hostname that fails to resolve", async () => {
-    mockXios.get.mockRejectedValue(new AxiosError("aargh"));
+    mockXios.mockRejectedValue(new AxiosError("aargh"));
 
     await expect(login("https://example.com/", "abc")).rejects.toHaveProperty(
       "message"
@@ -38,7 +39,7 @@ describe("The login command", () => {
       headers: { "Content-Type": "application/json" },
       config: {},
     };
-    mockXios.get.mockResolvedValue(testResponse);
+    mockXios.mockResolvedValue(testResponse);
 
     await login("https://example.org/ocpi/2.1.1", "abc");
 
