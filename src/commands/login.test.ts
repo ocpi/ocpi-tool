@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { describe, expect, jest, test } from "@jest/globals";
 import { login, OcpiResponse, SESSION_FILE } from "./login";
-import { V211Version } from "./ocpimsgs/version.schema";
+import { V211Version } from "../ocpimsgs/version.schema";
 import { readFile } from "node:fs/promises";
 
 jest.mock("axios");

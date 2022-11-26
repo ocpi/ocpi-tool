@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { login } from "./login";
+import { login } from "./commands/login";
 
 const getAPage = (moduleName: string) => {
   console.log("Aye, getting teh module");

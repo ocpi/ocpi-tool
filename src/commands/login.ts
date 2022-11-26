@@ -1,6 +1,6 @@
 import axios, { AxiosError } from "axios";
-import { V211Version as V211ListedVersion } from "./ocpimsgs/version.schema";
-import { V211Version } from "./ocpimsgs/versionGetDetailResponse.schema";
+import { V211Version as V211ListedVersion } from "../ocpimsgs/version.schema";
+import { V211Version } from "../ocpimsgs/versionGetDetailResponse.schema";
 import { writeFile } from "node:fs/promises";
 
 export interface OcpiResponse<T> {
