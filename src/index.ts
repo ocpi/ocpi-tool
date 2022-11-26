@@ -1,9 +1,6 @@
 import { Command } from "commander";
 import { login } from "./commands/login";
-
-const getAPage = (moduleName: string) => {
-  console.log("Aye, getting teh module");
-};
+import { get } from "./commands/get";
 
 const program = new Command();
 
@@ -21,6 +18,6 @@ program
 program
   .command("get <module>")
   .description("Fetch a page of data of a certain OCPI module")
-  .action((moduleName: string) => getAPage(moduleName));
+  .action((moduleName: string) => get(moduleName));
 
 program.parse();
