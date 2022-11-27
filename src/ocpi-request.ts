@@ -61,7 +61,7 @@ export async function ocpiRequestWithGivenToken<T>(
 }
 
 export async function setSession(session: OcpiSession): Promise<void> {
-  return writeFile(SESSION_FILE, JSON.stringify({ session }));
+  return writeFile(SESSION_FILE, JSON.stringify({ session }), { mode: "0600" });
 }
 
 export type NoSuchEndpoint = "no such endpoint";
