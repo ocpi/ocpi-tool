@@ -1,8 +1,11 @@
-export const get = (moduleName: string) => {
-  // To get dataargh:
-  //   1. Load session parameters
-  //   2. Find URL for module
-  //   3. Fetch that stuff
-  //   4. Dump to stdout
-  console.log("Aye, getting teh module");
+import { stdout } from "process";
+import { pullData } from "../ocpi-request";
+
+export const get = async (moduleName: string) => {
+  const data = await pullData(moduleName);
+  if (data === "no such endpoint") {
+    console.log(`No such endpoint: [${moduleName}]`);
+  } else {
+    stdout.write(JSON.stringify(data, null, 2));
+  }
 };
