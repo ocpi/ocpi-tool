@@ -1,10 +1,5 @@
-import { symlinkSync } from "fs";
 import { exit, stderr, stdout } from "process";
-import {
-  fetchDataForModule,
-  getModuleByName,
-  locations,
-} from "../ocpi-request";
+import { fetchDataForModule, getModuleByName } from "../ocpi-request";
 
 export const get = async (moduleName: string) => {
   /*

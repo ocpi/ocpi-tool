@@ -2,7 +2,6 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import { describe, expect, jest, test } from "@jest/globals";
 import { OcpiResponse } from "../ocpi-request";
 import { login } from "./login";
-import { SESSION_FILE } from "../ocpi-request";
 import { V211Version } from "../ocpimsgs/version.schema";
 import { readFile } from "node:fs/promises";
 
@@ -45,7 +44,7 @@ describe("The login command", () => {
     await login("https://example.org/ocpi/2.1.1", "abc");
 
     await expect(
-      readFile(SESSION_FILE, { encoding: "utf-8" })
+      readFile(`${process.env.HOME}/.ocpi`, { encoding: "utf-8" })
     ).resolves.toMatch("locations");
   });
 });

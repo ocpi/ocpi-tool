@@ -1,6 +1,7 @@
-import { V211Tariff } from "./ocpimsgs/tariff.schema";
+import { V211CDR } from "./ocpimsgs/cdr.schema";
 import { V211Location } from "./ocpimsgs/location.schema";
 import { V211Session } from "./ocpimsgs/session.schema";
+import { V211Tariff } from "./ocpimsgs/tariff.schema";
 import axios, { AxiosError } from "axios";
 import { readFile, writeFile } from "node:fs/promises";
 import { Readable } from "node:stream";
@@ -8,20 +9,38 @@ import parse from "parse-link-header";
 
 // A bunch of TODOs at this point:
 //  * support relative URLs in given endpoints (resolve at login time?)
-//  * paging
 //  * better error reporting: not logged in, unexpected HTTP error, auth failure...
 
-export interface OcpiModule<Name extends string, ObjectType> {
+/**
+ * The identifiers of OCPI modules.
+ *
+ * This is restricted to the so-called 'Functional Modules', that serve data that can be exported using this tool
+ */
+export type ModuleID =
+  | "cdrs"
+  | "chargingprofiles"
+  | "locations"
+  | "sessions"
+  | "tariffs"
+  | "tokens";
+
+export interface OcpiModule<Name extends ModuleID, ObjectType> {
   name: Name & string;
 }
+export const cdrs: OcpiModule<"cdrs", V211CDR> = {
+  name: "cdrs",
+};
+export const chargingprofiles: OcpiModule<"chargingprofiles", {}> = {
+  name: "chargingprofiles",
+};
 export const locations: OcpiModule<"locations", V211Location> = {
   name: "locations",
 };
-export const tariffs: OcpiModule<"tariffs", V211Tariff> = {
-  name: "tariffs",
-};
 export const sessions: OcpiModule<"sessions", V211Session> = {
   name: "sessions",
+};
+export const tariffs: OcpiModule<"tariffs", V211Tariff> = {
+  name: "tariffs",
 };
 
 export function getModuleByName(
@@ -32,10 +51,11 @@ export function getModuleByName(
   );
 }
 
-export interface OcpiPageParameters {
+interface OcpiPageParameters {
   offset: number;
   limit: number;
 }
+
 export interface OcpiResponse<T> {
   data: T;
   status_code: number;
@@ -56,7 +76,7 @@ export interface OcpiSession {
   endpoints: OcpiEndpoint[];
 }
 
-export const SESSION_FILE =
+const SESSION_FILE =
   process.env.OCPI_SESSION_FILE ?? `${process.env.HOME}/.ocpi`;
 
 export async function ocpiRequest<T>(
@@ -87,11 +107,9 @@ export async function ocpiRequestWithGivenToken<T>(
     } else throw error;
   }
 
-  console.log("Headers", resp.headers);
   const headerLinks = parse(resp.headers["link"]);
-  console.log("Saw header links", headerLinks);
   const linkToNextPage = headerLinks === null ? null : headerLinks["next"];
-  console.log("Setting link to next page", linkToNextPage);
+  console.debug("Setting link to next page", linkToNextPage);
   const nextPage =
     linkToNextPage === null
       ? undefined
@@ -104,17 +122,15 @@ export async function ocpiRequestWithGivenToken<T>(
   return ocpiResponse;
 }
 
-export async function setSession(session: OcpiSession): Promise<void> {
-  return writeFile(SESSION_FILE, JSON.stringify({ session }), { mode: "0600" });
-}
-
 export type NoSuchEndpoint = "no such endpoint";
 
-export type OcpiObject = 1;
-
-const INITIAL_REQUESTED_PAGE_SIZE = 10;
-
-export function fetchDataForModule<N extends string, T>(
+/**
+ * Fetch all data of a certain module from the OCPI platform that the tool is currently logged in to
+ *
+ * @param module The module to fetch data from
+ * @returns A Node Readable that you can stream the OCPI objects from the module from
+ */
+export function fetchDataForModule<N extends ModuleID, T>(
   module: OcpiModule<N, T>
 ): Readable {
   let nextPage: OcpiPageParameters | null = null;
@@ -122,7 +138,8 @@ export function fetchDataForModule<N extends string, T>(
   return new Readable({
     objectMode: true,
     read: async function (size: number) {
-      console.log(`Read called for ${size}`);
+      console.debug(`Node streams engine called read, size = ${size}`);
+
       const firstPageParameters = { offset: 0, limit: size };
       const nextPageData = await pullPageOfData(
         module,
@@ -131,19 +148,25 @@ export function fetchDataForModule<N extends string, T>(
       if (nextPageData === "no such endpoint") {
         throw new Error(`no endpoint found for module ${module.name}`);
       }
-      console.log("Page fetched", nextPageData);
+      console.debug("Page fetched", nextPageData);
 
       nextPageData.data.forEach((object) => {
-        console.log("pushing one object");
-        const wut = this.push(object);
-        console.log(`got back from push: ${wut}`);
+        const shouldContinue = this.push(object);
+        console.debug("push returned", shouldContinue);
       });
 
-      // end the stream if this is the last page
-      if (nextPageData.nextPage === undefined) this.push(null);
-      else nextPage = nextPageData.nextPage;
+      console.debug("Done pushing");
 
-      console.log("Done pushing");
+      // end the stream if this is the last page
+      if (nextPageData.nextPage === undefined) {
+        console.debug("No next page given in response, ending object stream");
+        this.push(null);
+      } else {
+        console.debug(
+          "Next page link included in response; setting next page to fetch on next call to read()"
+        );
+        nextPage = nextPageData.nextPage;
+      }
     },
   });
 }
@@ -153,7 +176,7 @@ type OcpiPagedGetResponse<T> = {
   nextPage?: OcpiPageParameters;
 };
 
-async function pullPageOfData<N extends string, T>(
+async function pullPageOfData<N extends ModuleID, T>(
   module: OcpiModule<N, T>,
   page: OcpiPageParameters
 ): Promise<OcpiPagedGetResponse<T> | NoSuchEndpoint> {
@@ -174,4 +197,8 @@ async function loadSession(): Promise<OcpiSession> {
     encoding: "utf-8",
   });
   return JSON.parse(sessionFileContents).session as OcpiSession;
+}
+
+export async function setSession(session: OcpiSession): Promise<void> {
+  return writeFile(SESSION_FILE, JSON.stringify({ session }), { mode: "0600" });
 }

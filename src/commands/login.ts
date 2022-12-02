@@ -1,5 +1,4 @@
 import { V211Version as V211ListedVersion } from "../ocpimsgs/version.schema";
-
 import { V211Version } from "../ocpimsgs/versionGetDetailResponse.schema";
 import {
   OcpiEndpoint,
