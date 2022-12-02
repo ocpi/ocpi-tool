@@ -1,10 +1,23 @@
+import { V211Tariff } from "./ocpimsgs/tariff.schema";
+import { V211Location } from "./ocpimsgs/location.schema";
 import axios, { AxiosError } from "axios";
 import { readFile, writeFile } from "node:fs/promises";
+import { Readable } from "node:stream";
 
 // A bunch of TODOs at this point:
 //  * support relative URLs in given endpoints (resolve at login time?)
 //  * paging
 //  * better error reporting: not logged in, unexpected HTTP error, auth failure...
+
+export interface OcpiModule<Name, ObjectType> {
+  name: Name & string;
+}
+export const locations: OcpiModule<"locations", V211Location> = {
+  name: "locations",
+};
+export const tariffs: OcpiModule<"tariffs", V211Tariff> = {
+  name: "tariffs",
+};
 
 export interface OcpiResponse<T> {
   data: T;
@@ -66,15 +79,40 @@ export async function setSession(session: OcpiSession): Promise<void> {
 
 export type NoSuchEndpoint = "no such endpoint";
 
-export async function pullData(
-  module: string
-): Promise<unknown[] | NoSuchEndpoint> {
+export type OcpiObject = 1;
+
+export function fetchDataForModule<N, T>(module: OcpiModule<N, T>): Readable {
+  let retrievedUpTo: Date | null = null;
+
+  return new Readable({
+    objectMode: true,
+    read: async function (size: number) {
+      console.log(`Read called for ${size}`);
+      const nextPage = await pullPageOfData(module);
+      if (nextPage === "no such endpoint") {
+        throw new Error(`no endpoint found for module ${module.name}`);
+      }
+      console.log("Page fetched");
+
+      nextPage.forEach((object) => {
+        console.log("pushing one object");
+        const wut = this.push(object);
+        console.log(`got back from push: ${wut}`);
+      });
+      console.log("Done pushing");
+    },
+  });
+}
+
+export async function pullPageOfData<N, T>(
+  module: OcpiModule<N, T>
+): Promise<T[] | NoSuchEndpoint> {
   const sess = await loadSession();
 
-  const moduleUrl = sess.endpoints.find((ep) => ep.identifier === module);
+  const moduleUrl = sess.endpoints.find((ep) => ep.identifier === module.name);
 
   if (moduleUrl) {
-    const getResponse = await ocpiRequest<unknown[]>("get", moduleUrl.url);
+    const getResponse = await ocpiRequest<T[]>("get", moduleUrl.url);
     return getResponse.data;
   } else return "no such endpoint";
 }
