@@ -1,5 +1,10 @@
-import { stdout } from "process";
-import { fetchDataForModule, locations } from "../ocpi-request";
+import { symlinkSync } from "fs";
+import { exit, stderr, stdout } from "process";
+import {
+  fetchDataForModule,
+  getModuleByName,
+  locations,
+} from "../ocpi-request";
 
 export const get = async (moduleName: string) => {
   /*
@@ -11,7 +16,14 @@ export const get = async (moduleName: string) => {
   }
   */
 
-  const data = await fetchDataForModule(locations).on("data", (aargh) => {
+  const module = getModuleByName(moduleName);
+
+  if (module == null) {
+    stderr.write(`Unknown OCPI module ${moduleName}\n`);
+    exit(1);
+  }
+
+  const data = await fetchDataForModule(module).on("data", (aargh) => {
     console.log("aargh", aargh);
   });
 };

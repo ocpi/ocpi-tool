@@ -1,15 +1,17 @@
 import { V211Tariff } from "./ocpimsgs/tariff.schema";
 import { V211Location } from "./ocpimsgs/location.schema";
+import { V211Session } from "./ocpimsgs/session.schema";
 import axios, { AxiosError } from "axios";
 import { readFile, writeFile } from "node:fs/promises";
 import { Readable } from "node:stream";
+import parse from "parse-link-header";
 
 // A bunch of TODOs at this point:
 //  * support relative URLs in given endpoints (resolve at login time?)
 //  * paging
 //  * better error reporting: not logged in, unexpected HTTP error, auth failure...
 
-export interface OcpiModule<Name, ObjectType> {
+export interface OcpiModule<Name extends string, ObjectType> {
   name: Name & string;
 }
 export const locations: OcpiModule<"locations", V211Location> = {
@@ -18,12 +20,28 @@ export const locations: OcpiModule<"locations", V211Location> = {
 export const tariffs: OcpiModule<"tariffs", V211Tariff> = {
   name: "tariffs",
 };
+export const sessions: OcpiModule<"sessions", V211Session> = {
+  name: "sessions",
+};
 
+export function getModuleByName(
+  moduleName: string
+): OcpiModule<any, any> | null {
+  return (
+    [locations, tariffs, sessions].find((m) => m.name === moduleName) ?? null
+  );
+}
+
+export interface OcpiPageParameters {
+  offset: number;
+  limit: number;
+}
 export interface OcpiResponse<T> {
   data: T;
   status_code: number;
   status_message?: string;
   timestamp: string;
+  nextPage?: OcpiPageParameters;
 }
 
 export interface OcpiEndpoint {
@@ -69,7 +87,20 @@ export async function ocpiRequestWithGivenToken<T>(
     } else throw error;
   }
 
-  const ocpiResponse = resp.data as OcpiResponse<T>;
+  console.log("Headers", resp.headers);
+  const headerLinks = parse(resp.headers["link"]);
+  console.log("Saw header links", headerLinks);
+  const linkToNextPage = headerLinks === null ? null : headerLinks["next"];
+  console.log("Setting link to next page", linkToNextPage);
+  const nextPage =
+    linkToNextPage === null
+      ? undefined
+      : {
+          offset: linkToNextPage?.offset,
+          limit: linkToNextPage?.limit,
+        };
+
+  const ocpiResponse = { ...resp.data, nextPage } as OcpiResponse<T>;
   return ocpiResponse;
 }
 
@@ -81,39 +112,60 @@ export type NoSuchEndpoint = "no such endpoint";
 
 export type OcpiObject = 1;
 
-export function fetchDataForModule<N, T>(module: OcpiModule<N, T>): Readable {
-  let retrievedUpTo: Date | null = null;
+const INITIAL_REQUESTED_PAGE_SIZE = 10;
+
+export function fetchDataForModule<N extends string, T>(
+  module: OcpiModule<N, T>
+): Readable {
+  let nextPage: OcpiPageParameters | null = null;
 
   return new Readable({
     objectMode: true,
     read: async function (size: number) {
       console.log(`Read called for ${size}`);
-      const nextPage = await pullPageOfData(module);
-      if (nextPage === "no such endpoint") {
+      const firstPageParameters = { offset: 0, limit: size };
+      const nextPageData = await pullPageOfData(
+        module,
+        nextPage ?? firstPageParameters
+      );
+      if (nextPageData === "no such endpoint") {
         throw new Error(`no endpoint found for module ${module.name}`);
       }
-      console.log("Page fetched");
+      console.log("Page fetched", nextPageData);
 
-      nextPage.forEach((object) => {
+      nextPageData.data.forEach((object) => {
         console.log("pushing one object");
         const wut = this.push(object);
         console.log(`got back from push: ${wut}`);
       });
+
+      // end the stream if this is the last page
+      if (nextPageData.nextPage === undefined) this.push(null);
+      else nextPage = nextPageData.nextPage;
+
       console.log("Done pushing");
     },
   });
 }
 
-export async function pullPageOfData<N, T>(
-  module: OcpiModule<N, T>
-): Promise<T[] | NoSuchEndpoint> {
+type OcpiPagedGetResponse<T> = {
+  data: T[];
+  nextPage?: OcpiPageParameters;
+};
+
+async function pullPageOfData<N extends string, T>(
+  module: OcpiModule<N, T>,
+  page: OcpiPageParameters
+): Promise<OcpiPagedGetResponse<T> | NoSuchEndpoint> {
   const sess = await loadSession();
 
   const moduleUrl = sess.endpoints.find((ep) => ep.identifier === module.name);
 
   if (moduleUrl) {
-    const getResponse = await ocpiRequest<T[]>("get", moduleUrl.url);
-    return getResponse.data;
+    return ocpiRequest<T[]>(
+      "get",
+      `${moduleUrl.url}?offset=${page.offset}&limit=${page.limit}`
+    );
   } else return "no such endpoint";
 }
 
