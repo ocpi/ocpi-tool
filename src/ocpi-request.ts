@@ -133,22 +133,31 @@ export type NoSuchEndpoint = "no such endpoint";
 export function fetchDataForModule<N extends ModuleID, T>(
   module: OcpiModule<N, T>
 ): Readable {
-  let nextPage: OcpiPageParameters | null = null;
+  let nextPage: OcpiPageParameters | "done" | "notstarted" = "notstarted";
 
   return new Readable({
     objectMode: true,
     read: async function (size: number) {
       console.debug(`Node streams engine called read, size = ${size}`);
 
+      if (nextPage === "done") {
+        console.debug(
+          "read() called while page fetching is already done; returning without pushing"
+        );
+        return;
+      }
+
       const firstPageParameters = { offset: 0, limit: size };
       const nextPageData = await pullPageOfData(
         module,
-        nextPage ?? firstPageParameters
+        nextPage === "notstarted" ? firstPageParameters : nextPage
       );
       if (nextPageData === "no such endpoint") {
         throw new Error(`no endpoint found for module ${module.name}`);
       }
       console.debug("Page fetched", nextPageData);
+
+      nextPage = nextPageData.nextPage ?? "done";
 
       nextPageData.data.forEach((object) => {
         const shouldContinue = this.push(object);
@@ -158,14 +167,9 @@ export function fetchDataForModule<N extends ModuleID, T>(
       console.debug("Done pushing");
 
       // end the stream if this is the last page
-      if (nextPageData.nextPage === undefined) {
+      if (nextPage === "done") {
         console.debug("No next page given in response, ending object stream");
         this.push(null);
-      } else {
-        console.debug(
-          "Next page link included in response; setting next page to fetch on next call to read()"
-        );
-        nextPage = nextPageData.nextPage;
       }
     },
   });
