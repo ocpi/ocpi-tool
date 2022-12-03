@@ -1,16 +1,9 @@
-import { exit, stderr, stdout } from "process";
+import { exit, stderr, stdout } from "node:process";
+import { pipeline } from "node:stream/promises";
+import { Transform } from "node:stream";
 import { fetchDataForModule, getModuleByName } from "../ocpi-request";
 
 export const get = async (moduleName: string) => {
-  /*
-  const data = await pullData(moduleName);
-  if (data === "no such endpoint") {
-    console.log(`No such endpoint: [${moduleName}]`);
-  } else {
-    stdout.write(JSON.stringify(data, null, 2));
-  }
-  */
-
   const module = getModuleByName(moduleName);
 
   if (module == null) {
@@ -18,7 +11,14 @@ export const get = async (moduleName: string) => {
     exit(1);
   }
 
-  const data = await fetchDataForModule(module).on("data", (aargh) => {
-    console.log("aargh", aargh);
+  const ocpiObjectStream = fetchDataForModule(module);
+  const jsonEncodingStream = new Transform({
+    writableObjectMode: true,
+    transform(chunk, encoding, callback) {
+      this.push(JSON.stringify(chunk));
+      callback();
+    },
   });
+
+  pipeline(ocpiObjectStream, jsonEncodingStream, stdout);
 };

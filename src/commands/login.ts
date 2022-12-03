@@ -17,23 +17,21 @@ export const login = async (platformVersionsUrl: string, token?: string) => {
     token
   );
 
-  console.log(`ocpiResponse: ${ocpiResponse}`);
-
   if (Array.isArray(ocpiResponse.data)) {
     const versions = ocpiResponse.data as V211ListedVersion[];
-    console.log(`It's a versions endpoint; versions is ${versions}`);
+    console.info(`It's a versions endpoint; versions is ${versions}`);
     throw new Error(`Sorry, for now I need a version URL, not a versions URL`);
   } else if (
     typeof ocpiResponse.data == "object" &&
     ocpiResponse.data.version
   ) {
     const version = ocpiResponse.data as V211Version;
-    console.log(`It's a version endpoint; version is ${version}`);
+    console.info(`It's a version endpoint; version is ${version}`);
     await setSession({
       version: version.version,
       endpoints: version.endpoints as unknown as OcpiEndpoint[],
       token,
     });
-    console.log(`Logged in to ${platformVersionsUrl}`);
+    console.info(`Logged in to ${platformVersionsUrl}`);
   }
 };
