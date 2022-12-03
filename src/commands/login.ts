@@ -1,4 +1,3 @@
-import { V211Version as V211ListedVersion } from "../ocpimsgs/version.schema";
 import { V211Version } from "../ocpimsgs/versionGetDetailResponse.schema";
 import {
   OcpiEndpoint,
@@ -18,9 +17,11 @@ export const login = async (platformVersionsUrl: string, token?: string) => {
   );
 
   if (Array.isArray(ocpiResponse.data)) {
-    const versions = ocpiResponse.data as V211ListedVersion[];
-    console.info(`It's a versions endpoint; versions is ${versions}`);
-    throw new Error(`Sorry, for now I need a version URL, not a versions URL`);
+    const versions = ocpiResponse.data as { version: string; url: string }[];
+    console.info(
+      "It's a versions endpoint; please pick one of the version URLs to log in to:"
+    );
+    versions.forEach((v) => console.info(`\t${v.version}\t${v.url}`));
   } else if (
     typeof ocpiResponse.data == "object" &&
     ocpiResponse.data.version

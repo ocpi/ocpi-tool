@@ -109,7 +109,6 @@ export async function ocpiRequestWithGivenToken<T>(
 
   const headerLinks = parse(resp.headers["link"]);
   const linkToNextPage = headerLinks === null ? null : headerLinks["next"];
-  console.debug("Setting link to next page", linkToNextPage);
   const nextPage =
     linkToNextPage === null
       ? undefined
