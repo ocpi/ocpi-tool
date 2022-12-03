@@ -34,5 +34,9 @@ export const login = async (platformVersionsUrl: string, token?: string) => {
       token,
     });
     console.info(`Logged in to ${platformVersionsUrl}`);
+  } else {
+    console.info(
+      `The URL at ${platformVersionsUrl} doesn't seem to be any kind of OCPI endpoint`
+    );
   }
 };
