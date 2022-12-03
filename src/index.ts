@@ -1,6 +1,12 @@
+import { Console } from "node:console";
+import { stderr } from "node:process";
 import { Command } from "commander";
 import { login } from "./commands/login";
 import { get } from "./commands/get";
+
+// send all console messages to stderr so people can pipe OCPI objects over
+// stdout and see the progress messages written to stdout at the same time
+console = new Console({ stdout: stderr, stderr });
 
 const program = new Command();
 
