@@ -90,16 +90,28 @@ export async function ocpiRequest<T>(
   return ocpiRequestWithGivenToken(
     method,
     url,
-    sessionObject.version,
-    sessionObject.token
+    sessionObject.token,
+    sessionObject.version
   );
 }
 
+// wat kan:
+//   * aparte functie zonder versiekennis, die retriet
+//   * altijd retryen
+//   * handmatig overriden?
+// laten we het benaderen met eisenlijstje:
+//   1. inlogrequests moeten met trial-and-error
+//   2. OCPI 2.1.1 mag zonder en nooit ge-encoded, maar liefst met trial and error
+//   3. OCPI 2.2.1 moet zonder trial and error
+//   4. bovenstaande moet uiteindelijk met cmdline-opties overridebaar zijn
+// wat denk je dan?
+//   * Complex geheel van opties meegeven: versie (mogelijk onbekend), evt expl voorkeur van de cmdline
 export async function ocpiRequestWithGivenToken<T>(
   method: "get" | "post" | "put" | "delete",
   url: string,
-  ocpiVersion: OcpiVersion,
-  token: string
+  token: string,
+  ocpiVersion?: OcpiVersion,
+  encodeToken?: boolean
 ): Promise<OcpiResponse<T>> {
   const tokenHeaderValue =
     "Token " +

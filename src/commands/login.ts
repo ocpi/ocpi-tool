@@ -13,8 +13,8 @@ export const login = async (
   const ocpiResponse = await ocpiRequestWithGivenToken<V211Version>(
     "get",
     platformVersionsUrl,
-    "2.1.1",
-    token
+    token,
+    "2.1.1"
   );
 
   if (Array.isArray(ocpiResponse.data)) {
