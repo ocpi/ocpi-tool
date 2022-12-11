@@ -13,9 +13,9 @@ describe("The login command", () => {
   test("throws an exception if we pass it a hostname that fails to resolve", async () => {
     mockXios.mockRejectedValue(new AxiosError("aargh"));
 
-    await expect(login("https://example.com/", "abc")).rejects.toHaveProperty(
-      "message"
-    );
+    await expect(
+      login("https://example.com/", "whatever-token-abc", "NL-IHO")
+    ).rejects.toHaveProperty("message");
   });
 
   test("creates a session file if we pass it a valid version URL and token", async () => {
@@ -41,7 +41,11 @@ describe("The login command", () => {
     };
     mockXios.mockResolvedValue(testResponse);
 
-    await login("https://example.org/ocpi/2.1.1", "abc");
+    await login(
+      "https://example.org/ocpi/2.1.1",
+      "whatever-token-abc",
+      "NL-IHO"
+    );
 
     await expect(
       readFile(`${process.env.HOME}/.ocpi`, { encoding: "utf-8" })

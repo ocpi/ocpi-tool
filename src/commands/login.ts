@@ -5,14 +5,15 @@ import {
   setSession,
 } from "../ocpi-request";
 
-export const login = async (platformVersionsUrl: string, token?: string) => {
-  if (!token) {
-    throw new Error('A token is required with "ocpi login"');
-  }
-
+export const login = async (
+  platformVersionsUrl: string,
+  token: string,
+  partyId: string
+) => {
   const ocpiResponse = await ocpiRequestWithGivenToken<V211Version>(
     "get",
     platformVersionsUrl,
+    "2.1.1",
     token
   );
 
@@ -32,6 +33,7 @@ export const login = async (platformVersionsUrl: string, token?: string) => {
       version: version.version,
       endpoints: version.endpoints as unknown as OcpiEndpoint[],
       token,
+      partyId,
     });
     console.info(`Logged in to ${platformVersionsUrl}`);
   } else {

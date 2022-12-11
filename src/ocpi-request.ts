@@ -24,9 +24,9 @@ export type ModuleID =
   | "tariffs"
   | "tokens";
 
-export interface OcpiModule<Name extends ModuleID, ObjectType> {
+export type OcpiModule<Name extends ModuleID, ObjectType> = {
   name: Name & string;
-}
+};
 export const cdrs: OcpiModule<"cdrs", V211CDR> = {
   name: "cdrs",
 };
@@ -51,30 +51,33 @@ export function getModuleByName(
   );
 }
 
-interface OcpiPageParameters {
+type OcpiPageParameters = {
   offset: number;
   limit: number;
-}
+};
 
-export interface OcpiResponse<T> {
+export type OcpiResponse<T> = {
   data: T;
   status_code: number;
   status_message?: string;
   timestamp: string;
   nextPage?: OcpiPageParameters;
-}
+};
 
-export interface OcpiEndpoint {
+export type OcpiEndpoint = {
   identifier: string;
   url: string;
   role?: "SENDER" | "RECEIVER";
-}
+};
 
-export interface OcpiSession {
+export type OcpiVersion = "2.2.1" | "2.2" | "2.1.1" | "2.0" | "2.1";
+
+export type OcpiSession = {
   token: string;
-  version: "2.1.1" | "2.0" | "2.1";
+  partyId: string;
+  version: OcpiVersion;
   endpoints: OcpiEndpoint[];
-}
+};
 
 const SESSION_FILE =
   process.env.OCPI_SESSION_FILE ?? `${process.env.HOME}/.ocpi`;
@@ -84,19 +87,31 @@ export async function ocpiRequest<T>(
   url: string
 ): Promise<OcpiResponse<T>> {
   const sessionObject = await loadSession();
-  return ocpiRequestWithGivenToken(method, url, sessionObject.token);
+  return ocpiRequestWithGivenToken(
+    method,
+    url,
+    sessionObject.version,
+    sessionObject.token
+  );
 }
 
 export async function ocpiRequestWithGivenToken<T>(
   method: "get" | "post" | "put" | "delete",
   url: string,
+  ocpiVersion: OcpiVersion,
   token: string
 ): Promise<OcpiResponse<T>> {
+  const tokenHeaderValue =
+    "Token " +
+    (ocpiVersion === "2.2.1" || ocpiVersion === "2.2"
+      ? Buffer.from(token).toString("base64")
+      : token);
+
   let resp;
   try {
     resp = await axios(url, {
       method: method,
-      headers: { Authorization: `Token ${token}` },
+      headers: { Authorization: tokenHeaderValue },
     });
   } catch (error) {
     const axiosError = error as AxiosError;

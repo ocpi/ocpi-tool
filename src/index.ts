@@ -14,12 +14,16 @@ program
   .command("login")
   .description("Log in to an OCPI platform")
   .argument("url", "The versions URL for the platform to log in to")
-  .option(
+  .requiredOption(
     "--token <token>",
-    "The authentication token for communication with the other platform",
-    undefined
+    "The authentication token for communication with the other platform"
   )
-  .action((url: string, options) => login(url, options.token));
+  .requiredOption(
+    "--party <party>",
+    "The party ID that the tool is connecting to the platform as, like DE-ABC or FR-XYZ",
+    /[A-Z]{2}-[A-Z0-9]{3}/
+  )
+  .action((url: string, options) => login(url, options.token, options.party));
 
 program
   .command("get <module>")
