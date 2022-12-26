@@ -102,7 +102,9 @@ export async function ocpiRequestRetryingAuthTokenBase64<T>(
   token: string,
   ocpiVersion?: OcpiVersion
 ): Promise<OcpiResponse<T>> {
-  const tryWithEncodedAuthTokenFirst = ocpiVersion === "2.2.1";
+  const tryWithEncodedAuthTokenFirst =
+    ocpiVersion === "2.2.1" || ocpiVersion === "2.2";
+
   try {
     return await ocpiRequestWithGivenToken(
       method,
