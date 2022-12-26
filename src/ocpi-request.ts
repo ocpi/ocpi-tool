@@ -5,6 +5,7 @@ import { V211Tariff } from "./ocpimsgs/tariff.schema";
 import axios, { AxiosError } from "axios";
 import { readFile, writeFile } from "node:fs/promises";
 import { Readable } from "node:stream";
+import { randomUUID } from "node:crypto";
 import parse from "parse-link-header";
 
 // A bunch of TODOs at this point:
@@ -164,11 +165,15 @@ const ocpiRequestWithLiteralAuthHeaderTokenValue: <T>(
   url: string,
   authHeaderValue: string
 ) => {
+  const tracingHeaders = {
+    "X-Request-ID": randomUUID(),
+    "X-Correlation-ID": randomUUID(),
+  };
   let resp;
   try {
     resp = await axios(url, {
       method: method,
-      headers: { Authorization: authHeaderValue },
+      headers: { Authorization: authHeaderValue, ...tracingHeaders },
     });
   } catch (error) {
     const axiosError = error as AxiosError;

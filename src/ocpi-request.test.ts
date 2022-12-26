@@ -3,6 +3,7 @@ import { describe, expect, jest, test } from "@jest/globals";
 import {
   OcpiResponse,
   ocpiRequestRetryingAuthTokenBase64,
+  ocpiRequest,
 } from "./ocpi-request";
 
 const mockOcpiResponse: OcpiResponse<{}> = {
@@ -47,7 +48,7 @@ describe("OCPI request making", () => {
     await ocpiRequestRetryingAuthTokenBase64<{}>(
       "get",
       "http://www.example.com/ocpi/2.2.1/nothing/sender",
-      "tokkietokkietoken",
+      testToken,
       "2.2.1"
     );
 
@@ -68,7 +69,7 @@ describe("OCPI request making", () => {
     await ocpiRequestRetryingAuthTokenBase64<{}>(
       "get",
       "http://www.example.com/ocpi/2.1.1/nothing/sender",
-      "tokkietokkietoken",
+      testToken,
       "2.1.1"
     );
 
@@ -92,7 +93,7 @@ describe("OCPI request making", () => {
     await ocpiRequestRetryingAuthTokenBase64<{}>(
       "get",
       "http://www.example.com/ocpi/2.1.1/nothing/sender",
-      "tokkietokkietoken",
+      testToken,
       "2.1.1"
     );
 
@@ -107,5 +108,27 @@ describe("OCPI request making", () => {
     expect(headersGivenToAxiosSecond?.["Authorization"]).toEqual(
       "Token " + testTokenB64
     );
+  });
+
+  test("includes X-Request-Id and X-Correlation-ID headers in requests", async () => {
+    const mockXios = axios as jest.Mocked<typeof axios>;
+
+    const testToken = "tokkietokkietoken";
+
+    mockXios.mockResolvedValueOnce(mockHttpResponse);
+
+    await ocpiRequestRetryingAuthTokenBase64<{}>(
+      "get",
+      "http://www.example.com/ocpi/2.1.1/nothing/sender",
+      testToken,
+      "2.1.1"
+    );
+
+    const axiosCall = mockXios.mock?.calls?.pop();
+    const headersGivenToAxios = axiosCall?.[1]?.headers;
+    const uuidRegex = /[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}/i;
+
+    expect(headersGivenToAxios?.["X-Request-ID"]).toMatch(uuidRegex);
+    expect(headersGivenToAxios?.["X-Correlation-ID"]).toMatch(uuidRegex);
   });
 });
