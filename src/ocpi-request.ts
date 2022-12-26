@@ -8,7 +8,6 @@ import { Readable } from "node:stream";
 import parse from "parse-link-header";
 
 // A bunch of TODOs at this point:
-//  * support relative URLs in given endpoints (resolve at login time?)
 //  * better error reporting: not logged in, unexpected HTTP error, auth failure...
 
 /**
@@ -79,15 +78,17 @@ export type OcpiSession = {
   endpoints: OcpiEndpoint[];
 };
 
+export type OcpiRequestMethod = "get" | "post" | "put" | "delete";
+
 const SESSION_FILE =
   process.env.OCPI_SESSION_FILE ?? `${process.env.HOME}/.ocpi`;
 
 export async function ocpiRequest<T>(
-  method: "get" | "post" | "put" | "delete",
+  method: OcpiRequestMethod,
   url: string
 ): Promise<OcpiResponse<T>> {
   const sessionObject = await loadSession();
-  return ocpiRequestWithGivenToken(
+  return ocpiRequestRetryingAuthTokenBase64(
     method,
     url,
     sessionObject.token,
@@ -95,35 +96,66 @@ export async function ocpiRequest<T>(
   );
 }
 
-// wat kan:
-//   * aparte functie zonder versiekennis, die retriet
-//   * altijd retryen
-//   * handmatig overriden?
-// laten we het benaderen met eisenlijstje:
-//   1. inlogrequests moeten met trial-and-error
-//   2. OCPI 2.1.1 mag zonder en nooit ge-encoded, maar liefst met trial and error
-//   3. OCPI 2.2.1 moet zonder trial and error
-//   4. bovenstaande moet uiteindelijk met cmdline-opties overridebaar zijn
-// wat denk je dan?
-//   * Complex geheel van opties meegeven: versie (mogelijk onbekend), evt expl voorkeur van de cmdline
+export async function ocpiRequestRetryingAuthTokenBase64<T>(
+  method: OcpiRequestMethod,
+  url: string,
+  token: string,
+  ocpiVersion?: OcpiVersion
+): Promise<OcpiResponse<T>> {
+  const tryWithEncodedAuthTokenFirst = ocpiVersion === "2.2.1";
+  try {
+    return await ocpiRequestWithGivenToken(
+      method,
+      url,
+      token,
+      ocpiVersion,
+      tryWithEncodedAuthTokenFirst
+    );
+  } catch (err) {
+    console.debug(
+      "Initial request failed. Retrying request with different auth token encoding"
+    );
+    return ocpiRequestWithGivenToken(
+      method,
+      url,
+      token,
+      ocpiVersion,
+      !tryWithEncodedAuthTokenFirst
+    );
+  }
+}
+
 export async function ocpiRequestWithGivenToken<T>(
-  method: "get" | "post" | "put" | "delete",
+  method: OcpiRequestMethod,
   url: string,
   token: string,
   ocpiVersion?: OcpiVersion,
   encodeToken?: boolean
 ): Promise<OcpiResponse<T>> {
-  const tokenHeaderValue =
-    "Token " +
-    (ocpiVersion === "2.2.1" || ocpiVersion === "2.2"
-      ? Buffer.from(token).toString("base64")
-      : token);
+  const authHeaderValue =
+    "Token " + (encodeToken ? Buffer.from(token).toString("base64") : token);
 
+  return ocpiRequestWithLiteralAuthHeaderTokenValue(
+    method,
+    url,
+    authHeaderValue
+  );
+}
+
+const ocpiRequestWithLiteralAuthHeaderTokenValue: <T>(
+  method: OcpiRequestMethod,
+  url: string,
+  authHeaderValue: string
+) => Promise<OcpiResponse<T>> = async <T>(
+  method: OcpiRequestMethod,
+  url: string,
+  authHeaderValue: string
+) => {
   let resp;
   try {
     resp = await axios(url, {
       method: method,
-      headers: { Authorization: tokenHeaderValue },
+      headers: { Authorization: authHeaderValue },
     });
   } catch (error) {
     const axiosError = error as AxiosError;
@@ -146,7 +178,7 @@ export async function ocpiRequestWithGivenToken<T>(
 
   const ocpiResponse = { ...resp.data, nextPage } as OcpiResponse<T>;
   return ocpiResponse;
-}
+};
 
 export type NoSuchEndpoint = "no such endpoint";
 

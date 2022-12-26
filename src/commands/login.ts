@@ -1,7 +1,7 @@
 import { V211Version } from "../ocpimsgs/versionGetDetailResponse.schema";
 import {
   OcpiEndpoint,
-  ocpiRequestWithGivenToken,
+  ocpiRequestRetryingAuthTokenBase64,
   setSession,
 } from "../ocpi-request";
 
@@ -10,11 +10,10 @@ export const login = async (
   token: string,
   partyId: string
 ) => {
-  const ocpiResponse = await ocpiRequestWithGivenToken<V211Version>(
+  const ocpiResponse = await ocpiRequestRetryingAuthTokenBase64<V211Version>(
     "get",
     platformVersionsUrl,
-    token,
-    "2.1.1"
+    token
   );
 
   if (Array.isArray(ocpiResponse.data)) {
