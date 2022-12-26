@@ -6,11 +6,17 @@ import {
   setSession,
 } from "../ocpi-request";
 
+export const INPUT_PARTY_ID_REGEX = /^[A-Z]{2}-?[A-Z0-9]{3}$/i;
+
 export const login = async (
   platformVersionsUrl: string,
   token: string,
   partyId: string
 ) => {
+  if (!partyId.match(INPUT_PARTY_ID_REGEX)) {
+    throw new Error(`Oopsie, login failed: invalid party ID [${partyId}]`);
+  }
+
   let ocpiResponse!: OcpiResponse<V211Version>;
 
   try {
@@ -44,7 +50,7 @@ export const login = async (
       version: version.version,
       endpoints: version.endpoints as unknown as OcpiEndpoint[],
       token,
-      partyId,
+      partyId: partyId.replace(/-/, "").toUpperCase(),
     });
     console.info(`Logged in to ${platformVersionsUrl}`);
   } else {

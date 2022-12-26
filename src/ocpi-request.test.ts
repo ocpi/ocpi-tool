@@ -3,7 +3,6 @@ import { describe, expect, jest, test } from "@jest/globals";
 import {
   OcpiResponse,
   ocpiRequestRetryingAuthTokenBase64,
-  ocpiRequest,
 } from "./ocpi-request";
 
 const mockOcpiResponse: OcpiResponse<{}> = {
@@ -130,5 +129,29 @@ describe("OCPI request making", () => {
 
     expect(headersGivenToAxios?.["X-Request-ID"]).toMatch(uuidRegex);
     expect(headersGivenToAxios?.["X-Correlation-ID"]).toMatch(uuidRegex);
+  });
+
+  test("includes routing headers when from and to party are given", async () => {
+    const mockXios = axios as jest.Mocked<typeof axios>;
+
+    const testToken = "tokkietokkietoken";
+
+    mockXios.mockResolvedValueOnce(mockHttpResponse);
+
+    await ocpiRequestRetryingAuthTokenBase64<{}>(
+      "get",
+      "http://www.example.com/ocpi/2.2.1/nothing/sender",
+      testToken,
+      "2.2.1",
+      "NLTNM",
+      "USCPI"
+    );
+
+    const axiosCall = mockXios.mock?.calls?.pop();
+    const headersGivenToAxios = axiosCall?.[1]?.headers;
+    expect(headersGivenToAxios?.["OCPI-from-country-code"]).toEqual("NL");
+    expect(headersGivenToAxios?.["OCPI-from-party-id"]).toEqual("TNM");
+    expect(headersGivenToAxios?.["OCPI-to-country-code"]).toEqual("US");
+    expect(headersGivenToAxios?.["OCPI-to-party-id"]).toEqual("CPI");
   });
 });

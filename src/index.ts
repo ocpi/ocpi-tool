@@ -1,7 +1,7 @@
 import { Console } from "node:console";
 import { stderr } from "node:process";
 import { Command } from "commander";
-import { login } from "./commands/login";
+import { INPUT_PARTY_ID_REGEX, login } from "./commands/login";
 import { get } from "./commands/get";
 
 // send all console messages to stderr so people can pipe OCPI objects over
@@ -21,7 +21,7 @@ program
   .requiredOption(
     "--party <party>",
     "The party ID that the tool is connecting to the platform as, like DE-ABC or FR-XYZ",
-    /[A-Z]{2}-[A-Z0-9]{3}/
+    INPUT_PARTY_ID_REGEX
   )
   .action((url: string, options) => login(url, options.token, options.party));
 

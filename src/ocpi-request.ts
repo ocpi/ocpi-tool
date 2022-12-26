@@ -43,6 +43,10 @@ export const tariffs: OcpiModule<"tariffs", V211Tariff> = {
   name: "tariffs",
 };
 
+// as opposed to the INPUT_PARTY_ID_REGEX, defined in login.ts, which is more
+// lenient in order to be more suitable for human input
+export const SESSION_PARTY_ID_REGEX = /^[A-Z]{2}[A-Z0-9]{3}$/;
+
 export function getModuleByName(
   moduleName: string
 ): OcpiModule<any, any> | null {
@@ -86,14 +90,18 @@ const SESSION_FILE =
 
 export async function ocpiRequest<T>(
   method: OcpiRequestMethod,
-  url: string
+  url: string,
+  fromPartyId?: string,
+  toPartyId?: string
 ): Promise<OcpiResponse<T>> {
   const sessionObject = await loadSession();
   return ocpiRequestRetryingAuthTokenBase64(
     method,
     url,
     sessionObject.token,
-    sessionObject.version
+    sessionObject.version,
+    fromPartyId,
+    toPartyId
   );
 }
 
@@ -101,7 +109,9 @@ export async function ocpiRequestRetryingAuthTokenBase64<T>(
   method: OcpiRequestMethod,
   url: string,
   token: string,
-  ocpiVersion?: OcpiVersion
+  ocpiVersion?: OcpiVersion,
+  fromPartyId?: string,
+  toPartyId?: string
 ): Promise<OcpiResponse<T>> {
   const tryWithEncodedAuthTokenFirst =
     ocpiVersion === "2.2.1" || ocpiVersion === "2.2";
@@ -110,7 +120,9 @@ export async function ocpiRequestRetryingAuthTokenBase64<T>(
     method,
     url,
     token,
-    tryWithEncodedAuthTokenFirst
+    tryWithEncodedAuthTokenFirst,
+    fromPartyId,
+    toPartyId
   );
   if ("isAxiosError" in responseToFirstTry && responseToFirstTry.isAxiosError) {
     const mayBeAuthenticationProblem =
@@ -122,7 +134,9 @@ export async function ocpiRequestRetryingAuthTokenBase64<T>(
         method,
         url,
         token,
-        !tryWithEncodedAuthTokenFirst
+        !tryWithEncodedAuthTokenFirst,
+        fromPartyId,
+        toPartyId
       );
       if (
         "isAxiosError" in responseToSecondTry &&
@@ -144,7 +158,9 @@ async function ocpiRequestWithGivenToken<T>(
   method: OcpiRequestMethod,
   url: string,
   token: string,
-  encodeToken?: boolean
+  encodeToken: boolean,
+  fromPartyId?: string,
+  toPartyId?: string
 ): Promise<OcpiResponse<T> | AxiosError> {
   const authHeaderValue =
     "Token " + (encodeToken ? Buffer.from(token).toString("base64") : token);
@@ -152,28 +168,41 @@ async function ocpiRequestWithGivenToken<T>(
   return ocpiRequestWithLiteralAuthHeaderTokenValue(
     method,
     url,
-    authHeaderValue
+    authHeaderValue,
+    fromPartyId,
+    toPartyId
   );
 }
 
 const ocpiRequestWithLiteralAuthHeaderTokenValue: <T>(
   method: OcpiRequestMethod,
   url: string,
-  authHeaderValue: string
+  authHeaderValue: string,
+  fromPartyId?: string,
+  toPartyId?: string
 ) => Promise<OcpiResponse<T> | AxiosError> = async <T>(
   method: OcpiRequestMethod,
   url: string,
-  authHeaderValue: string
+  authHeaderValue: string,
+  fromPartyId?: string,
+  toPartyId?: string
 ) => {
   const tracingHeaders = {
     "X-Request-ID": randomUUID(),
     "X-Correlation-ID": randomUUID(),
   };
+
+  const routingHeaders = routingHeadersFromPartyIds(fromPartyId, toPartyId);
+
   let resp;
   try {
     resp = await axios(url, {
       method: method,
-      headers: { Authorization: authHeaderValue, ...tracingHeaders },
+      headers: {
+        Authorization: authHeaderValue,
+        ...tracingHeaders,
+        ...routingHeaders,
+      },
     });
   } catch (error) {
     const axiosError = error as AxiosError;
@@ -194,6 +223,27 @@ const ocpiRequestWithLiteralAuthHeaderTokenValue: <T>(
 
   const ocpiResponse = { ...resp.data, nextPage } as OcpiResponse<T>;
   return ocpiResponse;
+};
+
+const routingHeadersFromPartyIds: (
+  fromPartyId?: string,
+  toPartyId?: string
+) => Record<string, string> = (fromPartyId, toPartyId) => {
+  const headers: Record<string, string> = {};
+  if (fromPartyId) {
+    if (!fromPartyId.match(SESSION_PARTY_ID_REGEX))
+      throw new Error(`invalid from party ID: [${fromPartyId}]`);
+    headers["OCPI-from-country-code"] = fromPartyId.slice(0, 2);
+    headers["OCPI-from-party-id"] = fromPartyId.slice(2);
+  }
+  if (toPartyId) {
+    if (!toPartyId.match(SESSION_PARTY_ID_REGEX))
+      throw new Error(`invalid to party ID: [${toPartyId}]`);
+    headers["OCPI-to-country-code"] = toPartyId.slice(0, 2);
+    headers["OCPI-to-party-id"] = toPartyId.slice(2);
+  }
+
+  return headers;
 };
 
 export type NoSuchEndpoint = "no such endpoint";
@@ -259,13 +309,18 @@ async function pullPageOfData<N extends ModuleID, T>(
   page: OcpiPageParameters
 ): Promise<OcpiPagedGetResponse<T> | NoSuchEndpoint> {
   const sess = await loadSession();
+  const fromPartyId =
+    sess.version === "2.2" || sess.version === "2.2.1"
+      ? sess.partyId
+      : undefined;
 
   const moduleUrl = sess.endpoints.find((ep) => ep.identifier === module.name);
 
   if (moduleUrl) {
     return ocpiRequest<T[]>(
       "get",
-      `${moduleUrl.url}?offset=${page.offset}&limit=${page.limit}`
+      `${moduleUrl.url}?offset=${page.offset}&limit=${page.limit}`,
+      fromPartyId
     );
   } else return "no such endpoint";
 }
