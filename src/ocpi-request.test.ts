@@ -1,8 +1,7 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosResponse, AxiosError } from "axios";
 import { describe, expect, jest, test } from "@jest/globals";
 import {
   OcpiResponse,
-  ocpiRequestWithGivenToken,
   ocpiRequestRetryingAuthTokenBase64,
 } from "./ocpi-request";
 
@@ -18,6 +17,20 @@ const mockHttpResponse: AxiosResponse = {
   statusText: "OK",
   headers: { "Content-Type": "application/json" },
   config: {},
+};
+
+const mockAuthenticationError: AxiosError = {
+  isAxiosError: true,
+  toJSON: () => ({}),
+  name: "Unauthorized",
+  message: "Hoepel op, je mag dit niet zien",
+  response: {
+    data: {},
+    status: 401,
+    statusText: "401",
+    headers: {},
+    config: {},
+  },
 };
 
 jest.mock("axios");
@@ -45,7 +58,7 @@ describe("OCPI request making", () => {
     );
   });
 
-  test.only("does not encode auth token on first try for OCPI 2.1.1", async () => {
+  test("does not encode auth token on first try for OCPI 2.1.1", async () => {
     const mockXios = axios as jest.Mocked<typeof axios>;
 
     const testToken = "tokkietokkietoken";
@@ -73,7 +86,7 @@ describe("OCPI request making", () => {
     const testTokenB64 = Buffer.from(testToken).toString("base64");
 
     mockXios
-      .mockRejectedValueOnce(new Error("hoepel op, je mag dit niet bekijken"))
+      .mockRejectedValueOnce(mockAuthenticationError)
       .mockResolvedValueOnce(mockHttpResponse);
 
     await ocpiRequestRetryingAuthTokenBase64<{}>(

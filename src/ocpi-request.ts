@@ -105,35 +105,46 @@ export async function ocpiRequestRetryingAuthTokenBase64<T>(
   const tryWithEncodedAuthTokenFirst =
     ocpiVersion === "2.2.1" || ocpiVersion === "2.2";
 
-  try {
-    return await ocpiRequestWithGivenToken(
-      method,
-      url,
-      token,
-      ocpiVersion,
-      tryWithEncodedAuthTokenFirst
-    );
-  } catch (err) {
-    console.debug(
-      "Initial request failed. Retrying request with different auth token encoding"
-    );
-    return ocpiRequestWithGivenToken(
-      method,
-      url,
-      token,
-      ocpiVersion,
-      !tryWithEncodedAuthTokenFirst
-    );
+  const responseToFirstTry = await ocpiRequestWithGivenToken(
+    method,
+    url,
+    token,
+    tryWithEncodedAuthTokenFirst
+  );
+  if ("isAxiosError" in responseToFirstTry && responseToFirstTry.isAxiosError) {
+    const mayBeAuthenticationProblem =
+      responseToFirstTry.response &&
+      responseToFirstTry.response?.status >= 400 &&
+      responseToFirstTry.response?.status < 500;
+    if (mayBeAuthenticationProblem) {
+      const responseToSecondTry = await ocpiRequestWithGivenToken(
+        method,
+        url,
+        token,
+        !tryWithEncodedAuthTokenFirst
+      );
+      if (
+        "isAxiosError" in responseToSecondTry &&
+        responseToSecondTry.isAxiosError
+      ) {
+        throw responseToSecondTry;
+      } else {
+        return responseToSecondTry as OcpiResponse<T>;
+      }
+    } else {
+      throw responseToFirstTry;
+    }
+  } else {
+    return responseToFirstTry as OcpiResponse<T>;
   }
 }
 
-export async function ocpiRequestWithGivenToken<T>(
+async function ocpiRequestWithGivenToken<T>(
   method: OcpiRequestMethod,
   url: string,
   token: string,
-  ocpiVersion?: OcpiVersion,
   encodeToken?: boolean
-): Promise<OcpiResponse<T>> {
+): Promise<OcpiResponse<T> | AxiosError> {
   const authHeaderValue =
     "Token " + (encodeToken ? Buffer.from(token).toString("base64") : token);
 
@@ -148,7 +159,7 @@ const ocpiRequestWithLiteralAuthHeaderTokenValue: <T>(
   method: OcpiRequestMethod,
   url: string,
   authHeaderValue: string
-) => Promise<OcpiResponse<T>> = async <T>(
+) => Promise<OcpiResponse<T> | AxiosError> = async <T>(
   method: OcpiRequestMethod,
   url: string,
   authHeaderValue: string
@@ -162,9 +173,7 @@ const ocpiRequestWithLiteralAuthHeaderTokenValue: <T>(
   } catch (error) {
     const axiosError = error as AxiosError;
     if (axiosError.isAxiosError) {
-      throw new Error(
-        `Failed to make OCPI request to platform: HTTP status is [${axiosError.response?.status}]; body is [${axiosError.response?.data}]`
-      );
+      return axiosError;
     } else throw error;
   }
 

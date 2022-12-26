@@ -1,6 +1,7 @@
 import { V211Version } from "../ocpimsgs/versionGetDetailResponse.schema";
 import {
   OcpiEndpoint,
+  OcpiResponse,
   ocpiRequestRetryingAuthTokenBase64,
   setSession,
 } from "../ocpi-request";
@@ -10,11 +11,22 @@ export const login = async (
   token: string,
   partyId: string
 ) => {
-  const ocpiResponse = await ocpiRequestRetryingAuthTokenBase64<V211Version>(
-    "get",
-    platformVersionsUrl,
-    token
-  );
+  let ocpiResponse!: OcpiResponse<V211Version>;
+
+  try {
+    ocpiResponse = await ocpiRequestRetryingAuthTokenBase64<V211Version>(
+      "get",
+      platformVersionsUrl,
+      token
+    );
+  } catch (err) {
+    throw new Error(
+      "Oopsie, login failed: " +
+        (err && typeof err == "object" && "message" in err
+          ? err.message
+          : "(no error message)")
+    );
+  }
 
   if (Array.isArray(ocpiResponse.data)) {
     const versions = ocpiResponse.data as { version: string; url: string }[];
