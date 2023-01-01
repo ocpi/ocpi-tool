@@ -59,3 +59,7 @@ Things we hope to add:
   * Support for more output formats, like CSV, or documentation of ways to use `jq` to make these
 
   * Whatever you think of. Pull requests welcome!
+
+## Copyright and acknowledgements
+
+The contents of this repository are © 2023 EV Roaming Foundation, except the contents of [src/schemas](src/schemas), which are based on those in [ChargeMap's OCPI implementation](https://github.com/ChargeMap/ocpi-protocol). The parts of which the EV Roaming Foundation holds the copyright are licensed to you under the [MIT license](LICENSE).

@@ -1,0 +1,135 @@
+{
+    "title": "V2.1.1\\Evse",
+    "type": "object",
+    "properties": {
+        "uid": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 39
+        },
+        "evse_id": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "minLength": 1,
+            "maxLength": 48
+        },
+        "status": {
+            "$ref": "common.schema.json#/definitions/evse_status"
+        },
+        "status_schedule": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "type": "object",
+                "properties": {
+                    "period_begin": {
+                        "$ref": "common.schema.json#/definitions/timestamp"
+                    },
+                    "period_end": {
+                        "$ref": "common.schema.json#/definitions/timestamp"
+                    },
+                    "status": {
+                        "$ref": "common.schema.json#/definitions/evse_status"
+                    }
+                },
+                "required": [
+                    "period_begin",
+                    "status"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "capabilities": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "type": "string",
+                "enum": [
+                    "CHARGING_PROFILE_CAPABLE",
+                    "CREDIT_CARD_PAYABLE",
+                    "REMOTE_START_STOP_CAPABLE",
+                    "RESERVABLE",
+                    "RFID_READER",
+                    "UNLOCK_CAPABLE"
+                ]
+            }
+        },
+        "connectors": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "$ref": "connector.schema.json"
+            }
+        },
+        "floor_level": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "minLength": 1,
+            "maxLength": 4
+        },
+        "coordinates": {
+            "oneOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "$ref": "common.schema.json#/definitions/geo_location"
+                }
+            ]
+        },
+        "physical_reference": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "minLength": 1,
+            "maxLength": 16
+        },
+        "directions": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "$ref": "common.schema.json#/definitions/display_text"
+            }
+        },
+        "parking_restrictions": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "type": "string",
+                "enum": [
+                    "EV_ONLY",
+                    "PLUGGED",
+                    "DISABLED",
+                    "CUSTOMERS",
+                    "MOTORCYCLES"
+                ]
+            }
+        },
+        "images": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "$ref": "common.schema.json#/definitions/image"
+            }
+        },
+        "last_updated": {
+            "$ref": "common.schema.json#/definitions/timestamp"
+        }
+    },
+    "additionalProperties": false
+}

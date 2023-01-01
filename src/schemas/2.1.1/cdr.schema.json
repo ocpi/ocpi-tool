@@ -1,0 +1,112 @@
+{
+    "title": "V2.1.1\\CDR",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "minLength": 1,
+            "max_length": 36
+        },
+        "start_date_time": {
+            "$ref": "common.schema.json#/definitions/timestamp"
+        },
+        "stop_date_time": {
+            "$ref": "common.schema.json#/definitions/timestamp"
+        },
+        "auth_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 36
+        },
+        "auth_method": {
+            "type": "string",
+            "enum": [
+                "AUTH_REQUEST",
+                "WHITELIST"
+            ]
+        },
+        "location": {
+            "$ref": "location.schema.json",
+            "required": [
+                "id",
+                "type",
+                "address",
+                "city",
+                "postal_code",
+                "country",
+                "coordinates",
+                "last_updated"
+            ]
+        },
+        "meter_id": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "minLength": 1,
+            "maxLength": 255
+        },
+        "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3
+        },
+        "tariffs": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "$ref": "tariff.schema.json"
+            }
+        },
+        "charging_periods": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "$ref": "common.schema.json#/definitions/charging_period"
+            }
+        },
+        "total_cost": {
+            "type": "number"
+        },
+        "total_energy": {
+            "type": "number"
+        },
+        "total_time": {
+            "type": "number"
+        },
+        "total_parking_time": {
+            "type": [
+                "number",
+                "null"
+            ]
+        },
+        "remark": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "minLength": 1,
+            "maxLength": 255
+        },
+        "last_updated": {
+            "$ref": "common.schema.json#/definitions/timestamp"
+        }
+    },
+    "required": [
+        "id",
+        "start_date_time",
+        "stop_date_time",
+        "auth_id",
+        "auth_method",
+        "location",
+        "currency",
+        "charging_periods",
+        "total_cost",
+        "total_energy",
+        "total_time",
+        "last_updated"
+    ],
+    "additionalProperties": false
+}

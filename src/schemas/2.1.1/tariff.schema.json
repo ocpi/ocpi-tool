@@ -1,0 +1,204 @@
+{
+    "title": "V2.1.1\\Tariff",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "minLength": 1,
+            "max_length": 36
+        },
+        "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3
+        },
+        "tariff_alt_text": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "$ref": "common.schema.json#/definitions/display_text"
+            }
+        },
+        "tariff_alt_url": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "uri"
+        },
+        "elements": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "$ref": "#/definitions/tariff_element"
+            }
+        },
+        "energy_mix": {
+            "oneOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "$ref": "common.schema.json#/definitions/energy_mix"
+                }
+            ]
+        },
+        "last_updated": {
+            "$ref": "common.schema.json#/definitions/timestamp"
+        }
+    },
+    "required": [
+        "id",
+        "currency",
+        "elements",
+        "last_updated"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "tariff_element": {
+            "type": "object",
+            "properties": {
+                "price_components": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/tariff_element/definitions/price_component"
+                    }
+                },
+                "restrictions": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "start_time": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "pattern": "[0-2][0-9]:[0-5][0-9]"
+                        },
+                        "end_time": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "pattern": "[0-2][0-9]:[0-5][0-9]"
+                        },
+                        "start_date": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date"
+                        },
+                        "end_date": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date"
+                        },
+                        "min_kwh": {
+                            "type": [
+                                "number",
+                                "null"
+                            ],
+                            "minimum": 0
+                        },
+                        "max_kwh": {
+                            "type": [
+                                "number",
+                                "null"
+                            ],
+                            "minimum": 0
+                        },
+                        "min_power": {
+                            "type": [
+                                "number",
+                                "null"
+                            ],
+                            "minimum": 0
+                        },
+                        "max_power": {
+                            "type": [
+                                "number",
+                                "null"
+                            ],
+                            "minimum": 0
+                        },
+                        "min_duration": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 0
+                        },
+                        "max_duration": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 0
+                        },
+                        "day_of_week": {
+                            "type": [
+                                "array",
+                                "null"
+                            ],
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "MONDAY",
+                                    "TUESDAY",
+                                    "WEDNESDAY",
+                                    "THURSDAY",
+                                    "FRIDAY",
+                                    "SATURDAY",
+                                    "SUNDAY"
+                                ]
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "required": [
+                "price_components"
+            ],
+            "additionalProperties": false,
+            "definitions": {
+                "price_component": {
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "ENERGY",
+                                "FLAT",
+                                "PARKING_TIME",
+                                "TIME"
+                            ]
+                        },
+                        "price": {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        "step_size": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "price",
+                        "step_size"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        }
+    }
+}

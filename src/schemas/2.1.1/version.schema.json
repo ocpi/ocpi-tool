@@ -1,0 +1,38 @@
+{
+  "title": "V2.1.1\\Version",
+  "type": "object",
+  "properties": {
+    "version" : {
+      "$ref": "common.schema.json#/definitions/version"
+    },
+    "endpoints": {
+      "type": [
+        "array"
+      ],
+      "minItems": 1,
+      "items": {
+        "identifier": {
+          "type": "string",
+          "enum": [
+            "cdrs",
+            "commands",
+            "credentials",
+            "locations",
+            "sessions",
+            "tariffs",
+            "tokens"
+          ]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "require": [
+          "identifier",
+          "url"
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}

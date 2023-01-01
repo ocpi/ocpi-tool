@@ -1,0 +1,54 @@
+{
+    "title": "V2.1.1\\Token",
+    "type": "object",
+    "properties": {
+        "uid": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 36
+        },
+        "type": {
+            "type": "string",
+            "enum": [
+                "RFID",
+                "OTHER"
+            ]
+        },
+        "auth_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 36
+        },
+        "visual_number": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+        },
+        "issuer": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+        },
+        "valid": {
+            "type": "boolean"
+        },
+        "whitelist": {
+            "type": "string",
+            "enum": [
+                "ALWAYS",
+                "ALLOWED",
+                "ALLOWED_OFFLINE",
+                "NEVER"
+            ]
+        },
+        "language": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2
+        },
+        "last_updated": {
+            "$ref": "common.schema.json#/definitions/timestamp"
+        }
+    },
+    "additionalProperties": false
+}

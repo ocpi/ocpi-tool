@@ -1,0 +1,185 @@
+{
+    "title": "V2.1.1\\Location",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 39
+        },
+        "type": {
+            "type": "string",
+            "enum": [
+                "ON_STREET",
+                "PARKING_GARAGE",
+                "UNDERGROUND_GARAGE",
+                "PARKING_LOT",
+                "OTHER",
+                "UNKNOWN"
+            ]
+        },
+        "name": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "minLength": 1,
+            "maxLength": 255
+        },
+        "address": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 45
+        },
+        "city": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 45
+        },
+        "postal_code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10
+        },
+        "country": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3
+        },
+        "coordinates": {
+            "$ref": "common.schema.json#/definitions/geo_location"
+        },
+        "related_locations": {
+            "oneOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "$ref": "common.schema.json#/definitions/related_locations"
+                }
+            ]
+        },
+        "evses": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "$ref": "evse.schema.json"
+            }
+        },
+        "directions": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "$ref": "common.schema.json#/definitions/display_text"
+            }
+        },
+        "operator": {
+            "oneOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "$ref": "common.schema.json#/definitions/business_details"
+                }
+            ]
+        },
+        "suboperator": {
+            "oneOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "$ref": "common.schema.json#/definitions/business_details"
+                }
+            ]
+        },
+        "owner": {
+            "oneOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "$ref": "common.schema.json#/definitions/business_details"
+                }
+            ]
+        },
+        "facilities": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "type": "string",
+                "enum": [
+                    "HOTEL",
+                    "RESTAURANT",
+                    "CAFE",
+                    "MALL",
+                    "SUPERMARKET",
+                    "SPORT",
+                    "RECREATION_AREA",
+                    "NATURE",
+                    "MUSEUM",
+                    "BUS_STOP",
+                    "TAXI_STAND",
+                    "TRAIN_STATION",
+                    "AIRPORT",
+                    "CARPOOL_PARKING",
+                    "FUEL_STATION",
+                    "WIFI"
+                ]
+            }
+        },
+        "time_zone": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "minLength": 1,
+            "maxLength": 255
+        },
+        "opening_times": {
+            "oneOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "$ref": "common.schema.json#/definitions/hours"
+                }
+            ]
+        },
+        "charging_when_closed": {
+            "type": [
+                "boolean",
+                "null"
+            ]
+        },
+        "images": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "$ref": "common.schema.json#/definitions/image"
+            }
+        },
+        "energy_mix": {
+            "oneOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "$ref": "common.schema.json#/definitions/energy_mix"
+                }
+            ]
+        },
+        "last_updated": {
+            "$ref": "common.schema.json#/definitions/timestamp"
+        }
+    },
+    "additionalProperties": false
+}
