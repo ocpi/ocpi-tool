@@ -1,7 +1,3 @@
-import { V211CDR } from "./ocpimsgs/cdr.schema";
-import { V211Location } from "./ocpimsgs/location.schema";
-import { V211Session } from "./ocpimsgs/session.schema";
-import { V211Tariff } from "./ocpimsgs/tariff.schema";
 import axios, { AxiosError } from "axios";
 import { readFile, writeFile } from "node:fs/promises";
 import { Readable } from "node:stream";
@@ -10,6 +6,13 @@ import parse from "parse-link-header";
 
 // A bunch of TODOs at this point:
 //  * better error reporting: not logged in, unexpected HTTP error, auth failure...
+
+/**
+ * The type of each of the data objects that we get out of an OCPI platform.
+ *
+ * We can assume almost nothing about those so it's just a record from string to pretty much anything.
+ */
+type OcpiClientOwnedObject = Record<string, any>;
 
 /**
  * The identifiers of OCPI modules.
@@ -24,22 +27,22 @@ export type ModuleID =
   | "tariffs"
   | "tokens";
 
-export type OcpiModule<Name extends ModuleID, ObjectType> = {
+export type OcpiModule<Name extends ModuleID> = {
   name: Name & string;
 };
-export const cdrs: OcpiModule<"cdrs", V211CDR> = {
+export const cdrs: OcpiModule<"cdrs"> = {
   name: "cdrs",
 };
-export const chargingprofiles: OcpiModule<"chargingprofiles", {}> = {
+export const chargingprofiles: OcpiModule<"chargingprofiles"> = {
   name: "chargingprofiles",
 };
-export const locations: OcpiModule<"locations", V211Location> = {
+export const locations: OcpiModule<"locations"> = {
   name: "locations",
 };
-export const sessions: OcpiModule<"sessions", V211Session> = {
+export const sessions: OcpiModule<"sessions"> = {
   name: "sessions",
 };
-export const tariffs: OcpiModule<"tariffs", V211Tariff> = {
+export const tariffs: OcpiModule<"tariffs"> = {
   name: "tariffs",
 };
 
@@ -47,9 +50,7 @@ export const tariffs: OcpiModule<"tariffs", V211Tariff> = {
 // lenient in order to be more suitable for human input
 export const SESSION_PARTY_ID_REGEX = /^[A-Z]{2}[A-Z0-9]{3}$/;
 
-export function getModuleByName(
-  moduleName: string
-): OcpiModule<any, any> | null {
+export function getModuleByName(moduleName: string): OcpiModule<any> | null {
   return (
     [locations, tariffs, sessions].find((m) => m.name === moduleName) ?? null
   );
@@ -68,10 +69,12 @@ export type OcpiResponse<T> = {
   nextPage?: OcpiPageParameters;
 };
 
+export type OcpiRole = "SENDER" | "RECEIVER";
+
 export type OcpiEndpoint = {
   identifier: string;
   url: string;
-  role?: "SENDER" | "RECEIVER";
+  role?: OcpiRole;
 };
 
 export type OcpiVersion = "2.2.1" | "2.2" | "2.1.1" | "2.0" | "2.1";
@@ -254,8 +257,8 @@ export type NoSuchEndpoint = "no such endpoint";
  * @param module The module to fetch data from
  * @returns A Node Readable that you can stream the OCPI objects from the module from
  */
-export function fetchDataForModule<N extends ModuleID, T>(
-  module: OcpiModule<N, T>
+export function fetchDataForModule<N extends ModuleID>(
+  module: OcpiModule<N>
 ): Readable {
   let nextPage: OcpiPageParameters | "done" | "notstarted" = "notstarted";
 
@@ -304,10 +307,10 @@ type OcpiPagedGetResponse<T> = {
   nextPage?: OcpiPageParameters;
 };
 
-async function pullPageOfData<N extends ModuleID, T>(
-  module: OcpiModule<N, T>,
+async function pullPageOfData<N extends ModuleID>(
+  module: OcpiModule<N>,
   page: OcpiPageParameters
-): Promise<OcpiPagedGetResponse<T> | NoSuchEndpoint> {
+): Promise<OcpiPagedGetResponse<OcpiClientOwnedObject> | NoSuchEndpoint> {
   const sess = await loadSession();
   const fromPartyId =
     sess.version === "2.2" || sess.version === "2.2.1"
@@ -317,7 +320,7 @@ async function pullPageOfData<N extends ModuleID, T>(
   const moduleUrl = sess.endpoints.find((ep) => ep.identifier === module.name);
 
   if (moduleUrl) {
-    return ocpiRequest<T[]>(
+    return ocpiRequest(
       "get",
       `${moduleUrl.url}?offset=${page.offset}&limit=${page.limit}`,
       fromPartyId

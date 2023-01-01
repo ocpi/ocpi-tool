@@ -1,12 +1,17 @@
-import { V211Version } from "../ocpimsgs/versionGetDetailResponse.schema";
 import {
   OcpiEndpoint,
   OcpiResponse,
   ocpiRequestRetryingAuthTokenBase64,
+  OcpiVersion,
   setSession,
 } from "../ocpi-request";
 
 export const INPUT_PARTY_ID_REGEX = /^[A-Z]{2}-?[A-Z0-9]{3}$/i;
+
+type OcpiVersionInformation = {
+  version: OcpiVersion;
+  endpoints: OcpiEndpoint[];
+};
 
 export const login = async (
   platformVersionsUrl: string,
@@ -17,14 +22,15 @@ export const login = async (
     throw new Error(`Oopsie, login failed: invalid party ID [${partyId}]`);
   }
 
-  let ocpiResponse!: OcpiResponse<V211Version>;
+  let ocpiResponse!: OcpiResponse<OcpiVersionInformation>;
 
   try {
-    ocpiResponse = await ocpiRequestRetryingAuthTokenBase64<V211Version>(
-      "get",
-      platformVersionsUrl,
-      token
-    );
+    ocpiResponse =
+      await ocpiRequestRetryingAuthTokenBase64<OcpiVersionInformation>(
+        "get",
+        platformVersionsUrl,
+        token
+      );
   } catch (err) {
     throw new Error(
       "Oopsie, login failed: " +
@@ -44,7 +50,7 @@ export const login = async (
     typeof ocpiResponse.data == "object" &&
     ocpiResponse.data.version
   ) {
-    const version = ocpiResponse.data as V211Version;
+    const version = ocpiResponse.data as OcpiVersionInformation;
     console.info(`It's a version endpoint; version is ${version}`);
     await setSession({
       version: version.version,
