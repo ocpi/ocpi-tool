@@ -1,7 +1,12 @@
 import { exit, stderr, stdout } from "node:process";
 import { pipeline } from "node:stream/promises";
 import { Transform } from "node:stream";
-import { fetchDataForModule, getModuleByName } from "../ocpi-request";
+import { fetchDataForModule, getModuleByName, ModuleID } from "../ocpi-request";
+import {
+  filter,
+  modulePrivacyDescriptors,
+  PrivacyDescriptor,
+} from "../privacy";
 
 export const get = async (moduleName: string) => {
   const module = getModuleByName(moduleName);
@@ -12,6 +17,22 @@ export const get = async (moduleName: string) => {
   }
 
   const ocpiObjectStream = fetchDataForModule(module);
+
+  const privacyFilteringStream = new Transform({
+    objectMode: true,
+    transform(chunk, encoding, callback) {
+      const privacyDescriptor: PrivacyDescriptor | null =
+        modulePrivacyDescriptors[module.name as ModuleID];
+      if (privacyDescriptor === null) {
+        throw new Error(
+          `No privacy descriptor defined for module [${module.name}]`
+        );
+      }
+      this.push(filter(privacyDescriptor, chunk));
+      callback();
+    },
+  });
+
   const jsonEncodingStream = new Transform({
     writableObjectMode: true,
     transform(chunk, encoding, callback) {
@@ -20,5 +41,10 @@ export const get = async (moduleName: string) => {
     },
   });
 
-  pipeline(ocpiObjectStream, jsonEncodingStream, stdout);
+  pipeline(
+    ocpiObjectStream,
+    privacyFilteringStream,
+    jsonEncodingStream,
+    stdout
+  );
 };

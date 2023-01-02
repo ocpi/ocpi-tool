@@ -328,7 +328,7 @@ async function pullPageOfData<N extends ModuleID>(
   } else return "no such endpoint";
 }
 
-async function loadSession(): Promise<OcpiSession> {
+export async function loadSession(): Promise<OcpiSession> {
   const sessionFileContents = await readFile(SESSION_FILE, {
     encoding: "utf-8",
   });
