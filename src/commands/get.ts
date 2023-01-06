@@ -28,7 +28,7 @@ export const get = async (moduleName: string) => {
           `No privacy descriptor defined for module [${module.name}]`
         );
       }
-      this.push(filter(privacyDescriptor, chunk));
+      this.push(filter(privacyDescriptor, chunk)?.result);
       callback();
     },
   });
