@@ -6,7 +6,7 @@ import {
   filter,
   modulePrivacyDescriptors,
   PrivacyDescriptor,
-} from "../privacy";
+} from "../privacy/filter";
 
 export const get = async (moduleName: string) => {
   const module = getModuleByName(moduleName);

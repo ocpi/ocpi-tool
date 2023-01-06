@@ -1,5 +1,5 @@
 import { describe, expect, test } from "@jest/globals";
-import { filter, PrivacyDescriptor } from "./privacy";
+import { filter, PrivacyDescriptor } from "./filter";
 
 describe("The Client Owned Object Privacy filter", () => {
   test("fills fields with 'na' in the schema with '#NA'", () => {
