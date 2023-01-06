@@ -28,7 +28,15 @@ export const get = async (moduleName: string) => {
           `No privacy descriptor defined for module [${module.name}]`
         );
       }
-      this.push(filter(privacyDescriptor, chunk)?.result);
+      const filteredObject = filter(privacyDescriptor, chunk);
+      if (filteredObject.errors !== null) {
+        console.warn(
+          "Failed to privacy-filter object: ",
+          filteredObject.errors
+        );
+      } else {
+        this.push(filter(privacyDescriptor, chunk).result);
+      }
       callback();
     },
   });

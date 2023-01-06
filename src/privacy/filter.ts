@@ -1,6 +1,7 @@
 import { ModuleID } from "../ocpi-request";
 
 import { locationDescriptor } from "./location";
+import { sessionDescriptor } from "./session";
 
 export type PrivacyDescriptor =
   | ObjectDescriptor
@@ -21,7 +22,7 @@ export const modulePrivacyDescriptors: Record<
   cdrs: null,
   chargingprofiles: null,
   locations: locationDescriptor,
-  sessions: null,
+  sessions: sessionDescriptor,
   tariffs: null,
   tokens: null,
 };
