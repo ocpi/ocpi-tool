@@ -2,25 +2,25 @@ import { describe, expect, test } from "@jest/globals";
 import { filter, PrivacyDescriptor } from "./filter";
 
 describe("The Client Owned Object Privacy filter", () => {
-  test("fills fields with 'na' in the schema with '#NA'", () => {
-    const schema: PrivacyDescriptor = { field: "na" };
+  test("fills fields with 'na' in the descriptor with '#NA'", () => {
+    const descriptor: PrivacyDescriptor = { field: "na" };
     const input = { field: "Jane Doe's political party membership" };
 
-    expect(filter(schema, input).result).toEqual({ field: "#NA" });
+    expect(filter(descriptor, input).result).toEqual({ field: "#NA" });
   });
 
-  test("passes fields' values literally if they're given in the schema as 'pass'", () => {
-    const schema: PrivacyDescriptor = { field: "pass" };
+  test("passes fields' values literally if they're given in the descriptor as 'pass'", () => {
+    const descriptor: PrivacyDescriptor = { field: "pass" };
     const input = {
       field:
         "Jane Doe's charging station's connector type that nobody knows belongs to Jane Doe",
     };
 
-    expect(filter(schema, input).result).toEqual(input);
+    expect(filter(descriptor, input).result).toEqual(input);
   });
 
-  test("applies a filter recursively to all array members when it's given in an array in the schema", () => {
-    const schema: PrivacyDescriptor = { field: [{ nestedField: "na" }] };
+  test("applies a filter recursively to all array members when it's given in an array in the descriptor", () => {
+    const descriptor: PrivacyDescriptor = { field: [{ nestedField: "na" }] };
     const input = {
       field: [
         { nestedField: "maan" },
@@ -29,7 +29,7 @@ describe("The Client Owned Object Privacy filter", () => {
       ],
     };
 
-    expect(filter(schema, input).result).toEqual({
+    expect(filter(descriptor, input).result).toEqual({
       field: [
         { nestedField: "#NA" },
         { nestedField: "#NA" },
@@ -38,29 +38,29 @@ describe("The Client Owned Object Privacy filter", () => {
     });
   });
 
-  test("returns an unrecognized property error if it encounters a property not given in the schema", () => {
-    const schema: PrivacyDescriptor = { a: "pass" };
+  test("returns an unrecognized property error if it encounters a property not given in the descriptor", () => {
+    const descriptor: PrivacyDescriptor = { a: "pass" };
     const input = { b: "whatevs" };
 
-    const error = filter(schema, input).errors?.[0];
+    const error = filter(descriptor, input).errors?.[0];
     expect(error?.name).toEqual("Unrecognized property");
     expect(error).toHaveProperty("message");
   });
 
   test("returns an unsupported input exception if people try to filter something that isn't like an OCPI client owned object", () => {
-    const schema: PrivacyDescriptor = {
+    const descriptor: PrivacyDescriptor = {
       a: "pass",
       b: "na",
       c: [{ field: "na" }],
     };
 
     const results = [
-      filter(schema, undefined),
-      filter(schema, 42),
-      filter(schema, { a: undefined }),
-      filter(schema, { b: { no: "object-expected-here" } }),
-      filter(schema, { c: "array-expected-here-but-im-giving-a-string" }),
-      filter(schema, {
+      filter(descriptor, undefined),
+      filter(descriptor, 42),
+      filter(descriptor, { a: undefined }),
+      filter(descriptor, { b: { no: "object-expected-here" } }),
+      filter(descriptor, { c: "array-expected-here-but-im-giving-a-string" }),
+      filter(descriptor, {
         c: [{ field: undefined }],
       }),
     ];
@@ -73,12 +73,12 @@ describe("The Client Owned Object Privacy filter", () => {
     }
   });
 
-  test("returns null if null is passed to the input and the schema is an object descriptor", () => {
-    const schema: PrivacyDescriptor = {
+  test("returns null if null is passed to the input and the descriptor is an object descriptor", () => {
+    const descriptor: PrivacyDescriptor = {
       a: "pass",
     };
 
-    expect(filter(schema, null).errors).toEqual(null);
-    expect(filter(schema, null).result).toEqual(null);
+    expect(filter(descriptor, null).errors).toEqual(null);
+    expect(filter(descriptor, null).result).toEqual(null);
   });
 });
