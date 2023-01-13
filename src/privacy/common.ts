@@ -10,3 +10,13 @@ export const chargingPeriodDescriptor: PrivacyDescriptor = {
   dimensions: [cdrDimensionDescriptor],
   tariff_id: "pass",
 };
+
+export const privateDisplayTextDescriptor: PrivacyDescriptor = {
+  language: "na",
+  text: "na",
+};
+
+export const privatePriceDescriptor: PrivacyDescriptor = {
+  excl_vat: "na",
+  incl_vat: "na",
+};
