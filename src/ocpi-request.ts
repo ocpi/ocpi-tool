@@ -52,7 +52,9 @@ export const SESSION_PARTY_ID_REGEX = /^[A-Z]{2}[A-Z0-9]{3}$/;
 
 export function getModuleByName(moduleName: string): OcpiModule<any> | null {
   return (
-    [locations, tariffs, sessions].find((m) => m.name === moduleName) ?? null
+    [cdrs, chargingprofiles, locations, sessions, tariffs].find(
+      (m) => m.name === moduleName
+    ) ?? null
   );
 }
 

@@ -1,4 +1,5 @@
 import { PrivacyDescriptor } from "./filter";
+import { chargingPeriodDescriptor } from "./common";
 
 export const cdrTokenDescriptor: PrivacyDescriptor = {
   country_code: "pass",
@@ -6,17 +7,6 @@ export const cdrTokenDescriptor: PrivacyDescriptor = {
   uid: "na",
   type: "pass",
   contract_id: "na",
-};
-
-export const cdrDimensionDescriptor: PrivacyDescriptor = {
-  type: "na",
-  volume: "na",
-};
-
-export const chargingPeriodDescriptor: PrivacyDescriptor = {
-  start_date_time: "na",
-  dimensions: [cdrDimensionDescriptor],
-  tariff_id: "pass",
 };
 
 export const sessionDescriptor: PrivacyDescriptor = {
