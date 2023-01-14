@@ -18,7 +18,7 @@ The advantage of the tool for the data consumer is that they can receive data in
 
 ## How it works
 
-###
+### The basic steps
 
 1. The CPO sets up an OCPI connection for the partner interested in their data. The other partner doesn't actually have to use this connection; it just exists so we have a way to track access happening for them
 
@@ -40,13 +40,141 @@ While just dumping a bunch of JSON to your console is not immediately useful by 
 ocpi get sessions | jq -s 'map(select(has("end_datetime")) | (.end_datetime | fromdate) - (.start_datetime | fromdate)) | add / length'
 ```
 
+### Privacy filtering
+
+You'll notice that when you run `ocpi get sessions`, or `ocpi get` with some other module name, a lot of fields show with `"#NA"` as their value. In fact, the output of the command is hardly useful because it consists mostly of `"#NA"` strings.
+
+This happens because by default, the value of every field that the author of the tool deemed privacy sensitive is blanked out by overwriting it with `"#NA"`.
+
+In order to get a useful export for your purposes, you have to actively disable the privacy filter for specific fields.
+
+So for example, while `ocpi get sessions` may return this:
+
+```json
+{
+  "id": "4283da431b2a4f8c9f421eaa53d0428b",
+  "kwh": "#NA",
+  "status": "#NA",
+  "auth_id": "#NA",
+  "currency": "EUR",
+  "total_cost": "#NA",
+  "auth_method": "WHITELIST",
+  "end_datetime": "#NA",
+  "last_updated": "#NA",
+  "start_datetime": "#NA",
+  "charging_periods": [
+    {
+      "dimensions": [
+        {
+          "type": "#NA",
+          "volume": "#NA"
+        }
+      ],
+      "start_date_time": "#NA"
+    }
+  ]
+}
+```
+
+`ocpi get --privacy-pass start_datetime,end_datetime,charging_periods.dimensions.type sessions` will unblank the fields named as the argument to the `--privacy-pass` flag:
+
+```json
+{
+  "id": "4283da431b2a4f8c9f421eaa53d0428b",
+  "kwh": "#NA",
+  "status": "#NA",
+  "auth_id": "#NA",
+  "currency": "EUR",
+  "total_cost": "#NA",
+  "auth_method": "WHITELIST",
+  "end_datetime": "2023-01-13T12:44:52Z",
+  "last_updated": "#NA",
+  "start_datetime": "2023-01-13T12:44:41Z",
+  "charging_periods": [
+    {
+      "dimensions": [
+        {
+          "type": "ENERGY",
+          "volume": "#NA"
+        }
+      ],
+      "start_date_time": "#NA"
+    }
+  ]
+}
+```
+
+Note that in naming nested fields, you don't have to care about arrays. The `charging_periods.dimensions.type` privacy pass instruction works even though `charging_periods` and `dimensions` contain arrays actually.
+
+Also you can totally unblank whole nested structures, like `charging_periods.dimensions` here which is an array of objects:
+
+```bash
+ocpi get --privacy-pass start_datetime,end_datetime,charging_periods.dimensions sessions
+```
+
+```json
+{
+  "id": "4283da431b2a4f8c9f421eaa53d0428b",
+  "kwh": "#NA",
+  "status": "#NA",
+  "auth_id": "#NA",
+  "currency": "EUR",
+  "total_cost": "#NA",
+  "auth_method": "WHITELIST",
+  "end_datetime": "2023-01-13T12:44:52Z",
+  "last_updated": "#NA",
+  "start_datetime": "2023-01-13T12:44:41Z",
+  "charging_periods": [
+    {
+      "dimensions": [
+        {
+          "type": "ENERGY",
+          "volume": 16
+        }
+      ],
+      "start_date_time": "#NA"
+    }
+  ]
+}
+```
+
+If you feel your use case does not warrant any concern about legal obligations of Privacy by Design as they exist in modern civilized jurisdictions nor about the fines of up to 10% of yearly company revenue that may be the consequence of data leaks, then you can also unblank everything at once thus:
+
+```
+ocpi get --privacy-pass . sessions
+```
+
+```json
+{
+  "id": "4283da431b2a4f8c9f421eaa53d0428b",
+  "kwh": 16,
+  "status": "COMPLETED",
+  "auth_id": "IEZZZC12E46L89",
+  "currency": "EUR",
+  "total_cost": 0,
+  "auth_method": "WHITELIST",
+  "end_datetime": "2023-01-13T12:44:52Z",
+  "last_updated": "2023-01-13T12:44:52Z",
+  "start_datetime": "2023-01-13T12:44:41Z",
+  "charging_periods": [
+    {
+      "dimensions": [
+        {
+          "type": "ENERGY",
+          "volume": 16
+        }
+      ],
+      "start_date_time": "2023-01-13T12:44:42Z"
+    }
+  ]
+}
+```
+
 ## How it hopefully will work in the future
 
 This is a simple proof of concept for now.
 
-Things we have to add:
-
-  * Built-in filtering of potential PII, by having a default profile of fields that can be safely exported. Other fields should be withheld from exports unless specifically enabled
+OCPI 2.2.1 support is not really tested. A known issue is that the cost fields in CDRs and sessions won't work because their types are different in 2.1.1 and 2.2.1 and the privacy filter can't deal with that yet.
 
 Things we hope to add:
 
@@ -54,7 +182,7 @@ Things we hope to add:
 
   * Persistent state, so you can export all data since the last export, or run weekly exports
 
-  * A continuous export mode, where the tool keeps indefinitely and streams new data to standard out or writes periodic export files
+  * A continuous export mode, where the tool keeps running indefinitely and streams new data to standard out or writes periodic export files
 
   * Support for more output formats, like CSV, or documentation of ways to use `jq` to make these
 
