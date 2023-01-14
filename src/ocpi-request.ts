@@ -33,9 +33,6 @@ export type OcpiModule<Name extends ModuleID> = {
 export const cdrs: OcpiModule<"cdrs"> = {
   name: "cdrs",
 };
-export const chargingprofiles: OcpiModule<"chargingprofiles"> = {
-  name: "chargingprofiles",
-};
 export const locations: OcpiModule<"locations"> = {
   name: "locations",
 };
@@ -52,9 +49,8 @@ export const SESSION_PARTY_ID_REGEX = /^[A-Z]{2}[A-Z0-9]{3}$/;
 
 export function getModuleByName(moduleName: string): OcpiModule<any> | null {
   return (
-    [cdrs, chargingprofiles, locations, sessions, tariffs].find(
-      (m) => m.name === moduleName
-    ) ?? null
+    [cdrs, locations, sessions, tariffs].find((m) => m.name === moduleName) ??
+    null
   );
 }
 
