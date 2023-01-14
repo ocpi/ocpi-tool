@@ -3,7 +3,7 @@ import { fail } from "assert";
 import {
   filter,
   isDescriptorModificationError,
-  modifyFilterToPass,
+  modifyDescriptorToPass,
   PrivacyDescriptor,
 } from "./filter";
 
@@ -100,7 +100,7 @@ describe("Client Owned Object Privacy filter modifiers", () => {
       b: ["Ergensstraat", "42", "1000 AA", "Amsterdam"],
     };
 
-    const modifiedDescriptor = modifyFilterToPass(modifier, descriptor);
+    const modifiedDescriptor = modifyDescriptorToPass(modifier, descriptor);
 
     if (isDescriptorModificationError(modifiedDescriptor)) {
       fail();
@@ -124,7 +124,7 @@ describe("Client Owned Object Privacy filter modifiers", () => {
       b: ["Ergensstraat", "42", "1000 AA", "Amsterdam"],
     };
 
-    const modifiedDescriptor = modifyFilterToPass(modifier, descriptor);
+    const modifiedDescriptor = modifyDescriptorToPass(modifier, descriptor);
 
     if (isDescriptorModificationError(modifiedDescriptor)) {
       fail();
@@ -157,7 +157,7 @@ describe("Client Owned Object Privacy filter modifiers", () => {
       ],
     };
 
-    const modifiedDescriptor = modifyFilterToPass(modifier, descriptor);
+    const modifiedDescriptor = modifyDescriptorToPass(modifier, descriptor);
 
     if (isDescriptorModificationError(modifiedDescriptor)) {
       fail();
@@ -180,7 +180,7 @@ describe("Client Owned Object Privacy filter modifiers", () => {
 
     const modifier = "a.b";
 
-    const modifiedDescriptor = modifyFilterToPass(modifier, descriptor);
+    const modifiedDescriptor = modifyDescriptorToPass(modifier, descriptor);
 
     expect(isDescriptorModificationError(modifiedDescriptor)).toBeTruthy();
   });
@@ -190,7 +190,7 @@ describe("Client Owned Object Privacy filter modifiers", () => {
 
     const modifier = "a.b";
 
-    const modifiedDescriptor = modifyFilterToPass(modifier, descriptor);
+    const modifiedDescriptor = modifyDescriptorToPass(modifier, descriptor);
 
     expect(isDescriptorModificationError(modifiedDescriptor)).toBeTruthy();
 

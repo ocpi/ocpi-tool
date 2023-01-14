@@ -181,7 +181,7 @@ export function isDescriptorModificationError(
   );
 }
 
-export const modifyFilterToPass: (
+export const modifyDescriptorToPass: (
   modifier: string,
   descriptor: PrivacyDescriptor
 ) => PrivacyDescriptor | DescriptorModificationError = (
@@ -191,7 +191,7 @@ export const modifyFilterToPass: (
   if (modifier === "." || modifier === "") return "deep-pass";
 
   if (Array.isArray(descriptor)) {
-    const intermediateResult = modifyFilterToPass(modifier, descriptor[0]);
+    const intermediateResult = modifyDescriptorToPass(modifier, descriptor[0]);
     if (isDescriptorModificationError(intermediateResult)) {
       return intermediateResult;
     } else {
@@ -213,7 +213,7 @@ export const modifyFilterToPass: (
     const modifierElements = modifier.split(".");
     const key = modifierElements[0];
     const modifierUnderKey = modifierElements.slice(1).join(".");
-    const intermediateResult = modifyFilterToPass(
+    const intermediateResult = modifyDescriptorToPass(
       modifierUnderKey,
       descriptor[key]
     );
