@@ -178,6 +178,12 @@ OCPI 2.2.1 support is not really tested. A known issue is that the cost fields i
 
 Things we hope to add:
 
+  * Finish and test OCPI 2.2.1 support
+
+  * Publishing it to NPM
+
+  * Cleaner error messages to the console
+
   * Joining data, like adding charging station information to exported charging session objects
 
   * Persistent state, so you can export all data since the last export, or run weekly exports
