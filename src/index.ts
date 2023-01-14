@@ -28,6 +28,12 @@ program
 program
   .command("get <module>")
   .description("Fetch a page of data of a certain OCPI module")
-  .action((moduleName: string) => get(moduleName));
+  .option(
+    "--privacy-pass <field list>",
+    "List of fields to exclude from privacy filtering"
+  )
+  .action((moduleName: string, options) =>
+    get(moduleName, options["privacyPass"])
+  );
 
 program.parse();

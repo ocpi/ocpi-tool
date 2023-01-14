@@ -8,7 +8,7 @@ import {
   PrivacyDescriptor,
 } from "../privacy/filter";
 
-export const get = async (moduleName: string) => {
+export const get = async (moduleName: string, privacyPass?: string) => {
   const module = getModuleByName(moduleName);
 
   if (module == null) {

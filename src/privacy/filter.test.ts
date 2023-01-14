@@ -1,5 +1,11 @@
 import { describe, expect, test } from "@jest/globals";
-import { filter, PrivacyDescriptor } from "./filter";
+import { fail } from "assert";
+import {
+  filter,
+  isDescriptorModificationError,
+  modifyFilterToPass,
+  PrivacyDescriptor,
+} from "./filter";
 
 describe("The Client Owned Object Privacy filter", () => {
   test("fills fields with 'na' in the descriptor with '#NA'", () => {
@@ -65,8 +71,6 @@ describe("The Client Owned Object Privacy filter", () => {
       }),
     ];
 
-    console.log(results);
-
     for (const res of results) {
       expect(res.errors?.[0].name).toEqual("Unsupported input type");
       expect(res.errors?.[0]).toHaveProperty("message");
@@ -80,5 +84,119 @@ describe("The Client Owned Object Privacy filter", () => {
 
     expect(filter(descriptor, null).errors).toEqual(null);
     expect(filter(descriptor, null).result).toEqual(null);
+  });
+});
+
+describe("Client Owned Object Privacy filter modifiers", () => {
+  test("can allow all data through", () => {
+    const descriptor: PrivacyDescriptor = {
+      a: "na",
+      b: ["na"],
+    };
+    const modifier = ".";
+
+    const input = {
+      a: "Marie Pietersen",
+      b: ["Ergensstraat", "42", "1000 AA", "Amsterdam"],
+    };
+
+    const modifiedDescriptor = modifyFilterToPass(modifier, descriptor);
+
+    if (isDescriptorModificationError(modifiedDescriptor)) {
+      fail();
+    } else {
+      expect(filter(modifiedDescriptor, input)).toEqual({
+        errors: null,
+        result: input,
+      });
+    }
+  });
+
+  test("can allow a specific field through", () => {
+    const descriptor: PrivacyDescriptor = {
+      a: "na",
+      b: ["na"],
+    };
+    const modifier = "a";
+
+    const input = {
+      a: "Marie Pietersen",
+      b: ["Ergensstraat", "42", "1000 AA", "Amsterdam"],
+    };
+
+    const modifiedDescriptor = modifyFilterToPass(modifier, descriptor);
+
+    if (isDescriptorModificationError(modifiedDescriptor)) {
+      fail();
+    } else {
+      expect(filter(modifiedDescriptor, input)).toEqual({
+        errors: null,
+        result: { a: "Marie Pietersen", b: ["#NA", "#NA", "#NA", "#NA"] },
+      });
+    }
+  });
+
+  test("can allow fields through inside arrays", () => {
+    const descriptor: PrivacyDescriptor = {
+      a: "na",
+      b: [
+        {
+          c: "na",
+          d: "na",
+        },
+      ],
+    };
+
+    const modifier = "b.d";
+
+    const input = {
+      a: "Marie Pietersen",
+      b: [
+        { c: "Foo", d: "Bar" },
+        { c: "Baz", d: "Quux" },
+      ],
+    };
+
+    const modifiedDescriptor = modifyFilterToPass(modifier, descriptor);
+
+    if (isDescriptorModificationError(modifiedDescriptor)) {
+      fail();
+    } else {
+      expect(filter(modifiedDescriptor, input)).toEqual({
+        errors: null,
+        result: {
+          a: "#NA",
+          b: [
+            { c: "#NA", d: "Bar" },
+            { c: "#NA", d: "Quux" },
+          ],
+        },
+      });
+    }
+  });
+
+  test("should return an error when trying to modify a nested field under what is a primitive field according to the descriptor", () => {
+    const descriptor: PrivacyDescriptor = { a: "na" };
+
+    const modifier = "a.b";
+
+    const modifiedDescriptor = modifyFilterToPass(modifier, descriptor);
+
+    expect(isDescriptorModificationError(modifiedDescriptor)).toBeTruthy();
+  });
+
+  test("should return an error when it occurs inside an array in the descriptor", () => {
+    const descriptor: PrivacyDescriptor = [{ a: "na" }];
+
+    const modifier = "a.b";
+
+    const modifiedDescriptor = modifyFilterToPass(modifier, descriptor);
+
+    expect(isDescriptorModificationError(modifiedDescriptor)).toBeTruthy();
+
+    if (isDescriptorModificationError(modifiedDescriptor)) {
+      expect(modifiedDescriptor.descriptor).toEqual("na");
+      expect(modifiedDescriptor.modifier).toEqual("b");
+    }
   });
 });

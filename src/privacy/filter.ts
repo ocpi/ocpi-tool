@@ -7,6 +7,7 @@ import { cdrDescriptor } from "./cdr";
 export type PrivacyDescriptor =
   | ObjectDescriptor
   | ArrayDescriptor
+  | "deep-pass"
   | "pass"
   | "na";
 
@@ -59,7 +60,9 @@ export const filter: (
   descriptor: PrivacyDescriptor,
   input: any
 ) => FilterResult = (descriptor, input) => {
-  if (descriptor === "pass") {
+  if (descriptor === "deep-pass") {
+    return { result: input, errors: null };
+  } else if (descriptor === "pass") {
     if (isOcpiPrimitive(input)) {
       return { result: input, errors: null };
     } else {
@@ -159,3 +162,66 @@ const unrecognizedPropertyError: (
   ],
   result: null,
 });
+
+export interface DescriptorModificationError extends Error {
+  descriptor: PrivacyDescriptor;
+  modifier: string;
+}
+
+export function isDescriptorModificationError(
+  v: DescriptorModificationError | PrivacyDescriptor
+): v is DescriptorModificationError {
+  const keys = Object.keys(v);
+
+  return (
+    keys.includes("name") &&
+    keys.includes("message") &&
+    keys.includes("descriptor") &&
+    keys.includes("modifier")
+  );
+}
+
+export const modifyFilterToPass: (
+  modifier: string,
+  descriptor: PrivacyDescriptor
+) => PrivacyDescriptor | DescriptorModificationError = (
+  modifier,
+  descriptor
+) => {
+  if (modifier === "." || modifier === "") return "deep-pass";
+
+  if (Array.isArray(descriptor)) {
+    const intermediateResult = modifyFilterToPass(modifier, descriptor[0]);
+    if (isDescriptorModificationError(intermediateResult)) {
+      return intermediateResult;
+    } else {
+      return [intermediateResult];
+    }
+  } else if (
+    descriptor === "pass" ||
+    descriptor === "na" ||
+    descriptor === "deep-pass"
+  ) {
+    return {
+      descriptor,
+      modifier,
+      message:
+        "Attempt to modify privacy filtering of non-existent nested field",
+      name: "DescriptorModificationError",
+    };
+  } else {
+    const modifierElements = modifier.split(".");
+    const key = modifierElements[0];
+    const modifierUnderKey = modifierElements.slice(1).join(".");
+    const intermediateResult = modifyFilterToPass(
+      modifierUnderKey,
+      descriptor[key]
+    );
+
+    if (isDescriptorModificationError(intermediateResult)) {
+      return intermediateResult;
+    }
+
+    return { ...descriptor, [key]: intermediateResult };
+  }
+};
