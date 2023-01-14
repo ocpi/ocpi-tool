@@ -14,7 +14,7 @@ OCPI is a network protocol used between CPOs and other EV charging market partie
 
 While doing a full OCPI integration with a data consumer is a lot of work on their end as well, this tool will enable CPOs to easily create scripts that use the OCPI interface as a source for an ETL ([Extract-Transform-Load](https://en.wikipedia.org/wiki/Extract,_transform,_load)) pipeline that can deliver properly cleaned and formatted data to external parties.
 
-The advantage of the tool for the data consumer is that they can receive data in whatever custom format they ask from the CPO, and they don't have to do a full OCPI integration or any other programmatic integration with the CPO. The advantage of the tool for the CPO is that they don't have to add new interfaces to their core systems for new types of data exports; instead they can use the existing OCPI interface, avoiding tight-coupling their  data exports to their data exports.
+The advantage of the tool for the data consumer is that they can receive data in whatever custom format they ask from the CPO, and they don't have to do a full OCPI integration or any other programmatic integration with the CPO. The advantage of the tool for the CPO is that they don't have to add new interfaces to their core systems for new types of data exports; instead they can use the existing OCPI interface, avoiding tight-coupling their data exports to their business logic.
 
 ## How it works
 
