@@ -85,7 +85,7 @@ ocpi get sessions
 While just dumping a bunch of JSON to your console is not immediately useful by itself, it will come to life when you start piping it to further shell tools. The [`jq`](https://stedolan.github.io/jq/) tool will be especially useful. Like in this command to compute the average charge session duration:
 
 ```bash
-ocpi get sessions | jq -s 'map(select(has("end_datetime")) | (.end_datetime | fromdate) - (.start_datetime | fromdate)) | add / length'
+ocpi get --privacy-pass start_datetime,end_datetime sessions | jq -s 'map(select(has("end_datetime")) | (.end_datetime | fromdate) - (.start_datetime | fromdate)) | add / length'
 ```
 
 ### Privacy filtering
