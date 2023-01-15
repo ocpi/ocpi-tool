@@ -18,15 +18,63 @@ The advantage of the tool for the data consumer is that they can receive data in
 
 ## How it works
 
-### The basic steps
+### Getting started
+
+First clone the repo:
+
+```bash
+git clone git@github.com:ocpi/ocpi-tool.git
+```
+
+Assuming you have npm version 18 or later, you can build the tool like this:
+
+```bash
+npm ci
+
+npm run build
+```
+
+And then you can run the tool like this:
+
+```bash
+node dist/index.js
+```
+
+If you run that you should see this output:
+
+```
+Usage: index [options] [command]
+
+Options:
+  -h, --help              display help for command
+
+Commands:
+  login [options] <url>   Log in to an OCPI platform
+  get [options] <module>  Fetch a page of data of a certain OCPI module
+  help [command]          display help for command
+```
+
+If you want to be able to use the tool as a globally installed `ocpi` command, you can do that like this:
+
+```
+npm ci && npm run build && npm pack
+
+npm i ocpi-tool-0.0.1.tgz -g
+```
+
+If you don't do that, you'll have to read `node dist/index.js` where it says `ocpi` in the example commands below.
+
+### Basic usage
 
 1. The CPO sets up an OCPI connection for the partner interested in their data. The other partner doesn't actually have to use this connection; it just exists so we have a way to track access happening for them
 
 2. The CPO runs the tool to set it up to extract data for the consumer partner:
 
 ```bash
-ocpi  login http://example.org/url-to-version-endpoint --token token-for-partner-from-step-1
+ocpi  login http://example.org/url-to-version-endpoint --party-id XX-YYY --token token-for-partner-from-step-1
 ```
+
+where `XX-YYY` is replaced by a party ID for the party consuming the output of the tool. OCPI, at least in version 2.2.1, requires a party ID to be presented in every request so the tool needs one in order to contact the platform it is getting data from.
 
 3. The CPO extracts all data from a given module
 
