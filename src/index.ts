@@ -8,6 +8,9 @@ import { get } from "./commands/get";
 // stdout and see the progress messages written to stdout at the same time
 console = new Console({ stdout: stderr, stderr });
 
+// don't print debug output, normally speaking
+console.debug = () => {};
+
 const program = new Command();
 
 program
