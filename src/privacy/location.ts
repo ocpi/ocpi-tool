@@ -1,4 +1,5 @@
 import { PrivacyDescriptor } from "./filter";
+import { energyMixDescriptor } from "./common";
 
 const geoLocationDescriptor: PrivacyDescriptor = {
   latitude: "na",
@@ -22,24 +23,6 @@ const passedImageDescriptor: PrivacyDescriptor = {
   type: "pass",
   width: "pass",
   height: "pass",
-};
-
-const energyMixDescriptor: PrivacyDescriptor = {
-  is_green_energy: "na",
-  energy_sources: [
-    {
-      source: "na",
-      percentage: "na",
-    },
-  ],
-  environ_impact: [
-    {
-      category: "na",
-      amount: "na",
-    },
-  ],
-  supplier_name: "na",
-  energy_product_name: "na",
 };
 
 const displayTextDescriptor: PrivacyDescriptor = {

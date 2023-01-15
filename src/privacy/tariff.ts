@@ -1,4 +1,8 @@
-import { privateDisplayTextDescriptor, privatePriceDescriptor } from "./common";
+import {
+  energyMixDescriptor,
+  privateDisplayTextDescriptor,
+  privatePriceDescriptor,
+} from "./common";
 import { PrivacyDescriptor } from "./filter";
 
 const priceComponentDescriptor: PrivacyDescriptor = {
@@ -43,24 +47,6 @@ export const tariffDescriptor: PrivacyDescriptor = {
   elements: [tariffElementDescriptor],
   start_date_time: "na",
   end_date_time: "na",
-  energy_mix: [
-    {
-      is_green_energy: "pass",
-      energy_sources: [
-        {
-          source: "pass",
-          percentage: "pass",
-        },
-      ],
-      environ_impact: [
-        {
-          category: "pass",
-          amount: "pass",
-        },
-      ],
-      supplier_name: "na",
-      energy_product_name: "na",
-    },
-  ],
+  energy_mix: [energyMixDescriptor],
   last_updated: "na",
 };

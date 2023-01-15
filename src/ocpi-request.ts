@@ -42,6 +42,9 @@ export const sessions: OcpiModule<"sessions"> = {
 export const tariffs: OcpiModule<"tariffs"> = {
   name: "tariffs",
 };
+export const tokens: OcpiModule<"tokens"> = {
+  name: "tokens",
+};
 
 // as opposed to the INPUT_PARTY_ID_REGEX, defined in login.ts, which is more
 // lenient in order to be more suitable for human input
@@ -49,8 +52,9 @@ export const SESSION_PARTY_ID_REGEX = /^[A-Z]{2}[A-Z0-9]{3}$/;
 
 export function getModuleByName(moduleName: string): OcpiModule<any> | null {
   return (
-    [cdrs, locations, sessions, tariffs].find((m) => m.name === moduleName) ??
-    null
+    [cdrs, locations, sessions, tariffs, tokens].find(
+      (m) => m.name === moduleName
+    ) ?? null
   );
 }
 
@@ -317,7 +321,9 @@ async function pullPageOfData<N extends ModuleID>(
       ? sess.partyId
       : undefined;
 
-  const moduleUrl = sess.endpoints.find((ep) => ep.identifier === module.name);
+  const moduleUrl = sess.endpoints.find(
+    (ep) => ep.identifier === module.name && ep.role !== "RECEIVER"
+  );
 
   if (moduleUrl) {
     return ocpiRequest(

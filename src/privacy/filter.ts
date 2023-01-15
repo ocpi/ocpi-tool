@@ -4,6 +4,7 @@ import { locationDescriptor } from "./location";
 import { sessionDescriptor } from "./session";
 import { cdrDescriptor } from "./cdr";
 import { tariffDescriptor } from "./tariff";
+import { tokenDescriptor } from "./token";
 
 export type PrivacyDescriptor =
   | ObjectDescriptor
@@ -27,7 +28,7 @@ export const modulePrivacyDescriptors: Record<
   locations: locationDescriptor,
   sessions: sessionDescriptor,
   tariffs: tariffDescriptor,
-  tokens: null,
+  tokens: tokenDescriptor,
 };
 
 interface UnrecognizedPropertyError extends Error {

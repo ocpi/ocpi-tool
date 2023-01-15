@@ -11,6 +11,24 @@ export const chargingPeriodDescriptor: PrivacyDescriptor = {
   tariff_id: "pass",
 };
 
+export const energyMixDescriptor: PrivacyDescriptor = {
+  is_green_energy: "na",
+  energy_sources: [
+    {
+      source: "na",
+      percentage: "na",
+    },
+  ],
+  environ_impact: [
+    {
+      category: "na",
+      amount: "na",
+    },
+  ],
+  supplier_name: "na",
+  energy_product_name: "na",
+};
+
 export const privateDisplayTextDescriptor: PrivacyDescriptor = {
   language: "na",
   text: "na",
