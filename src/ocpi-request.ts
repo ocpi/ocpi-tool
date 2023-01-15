@@ -284,10 +284,12 @@ export function fetchDataForModule<N extends ModuleID>(
 
       nextPage = nextPageData.nextPage ?? "done";
 
-      nextPageData.data.forEach((object) => {
-        const shouldContinue = this.push(object);
-        console.debug("push returned", shouldContinue);
-      });
+      if (nextPageData["data"]) {
+        nextPageData.data.forEach((object) => {
+          const shouldContinue = this.push(object);
+          console.debug("push returned", shouldContinue);
+        });
+      }
 
       console.debug("Done pushing");
 
@@ -301,7 +303,7 @@ export function fetchDataForModule<N extends ModuleID>(
 }
 
 type OcpiPagedGetResponse<T> = {
-  data: T[];
+  data?: T[];
   nextPage?: OcpiPageParameters;
 };
 
