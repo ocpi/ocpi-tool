@@ -1,6 +1,6 @@
 {
   "name": "ocpi-tool",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A command-line tool for exporting data from OCPI platforms",
   "main": "dist/index.js",
   "scripts": {
