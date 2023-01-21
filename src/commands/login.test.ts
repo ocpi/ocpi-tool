@@ -2,7 +2,9 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import { describe, expect, jest, test } from "@jest/globals";
 import { OcpiResponse } from "../ocpi-request";
 import { login } from "./login";
-import { readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, rmdir } from "node:fs/promises";
+import path from "node:path";
+import os from "node:os";
 
 jest.mock("axios");
 
@@ -40,6 +42,9 @@ describe("The login command", () => {
     };
     mockXios.mockResolvedValue(testResponse);
 
+    const tempdir = await mkdtemp(path.join(os.tmpdir(), "ocpi-tool-tests-"));
+    process.env["HOME"] = tempdir;
+
     await login(
       "https://example.org/ocpi/2.1.1",
       "whatever-token-abc",
@@ -49,5 +54,8 @@ describe("The login command", () => {
     await expect(
       readFile(`${process.env.HOME}/.ocpi`, { encoding: "utf-8" })
     ).resolves.toMatch("locations");
+
+    await rm(`${tempdir}/.ocpi`);
+    await rmdir(tempdir);
   });
 });

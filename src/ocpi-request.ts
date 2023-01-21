@@ -90,9 +90,6 @@ export type OcpiSession = {
 
 export type OcpiRequestMethod = "get" | "post" | "put" | "delete";
 
-const SESSION_FILE =
-  process.env.OCPI_SESSION_FILE ?? `${process.env.HOME}/.ocpi`;
-
 export async function ocpiRequest<T>(
   method: OcpiRequestMethod,
   url: string,
@@ -335,12 +332,17 @@ async function pullPageOfData<N extends ModuleID>(
 }
 
 export async function loadSession(): Promise<OcpiSession> {
-  const sessionFileContents = await readFile(SESSION_FILE, {
+  const sessionFileContents = await readFile(sessionFile(), {
     encoding: "utf-8",
   });
   return JSON.parse(sessionFileContents).session as OcpiSession;
 }
 
 export async function setSession(session: OcpiSession): Promise<void> {
-  return writeFile(SESSION_FILE, JSON.stringify({ session }), { mode: "0600" });
+  return writeFile(sessionFile(), JSON.stringify({ session }), {
+    mode: "0600",
+  });
 }
+
+const sessionFile: () => string = () =>
+  process.env.OCPI_SESSION_FILE ?? `${process.env.HOME}/.ocpi`;
