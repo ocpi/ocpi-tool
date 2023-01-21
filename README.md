@@ -20,27 +20,13 @@ The advantage of the tool for the data consumer is that they can receive data in
 
 ### Getting started
 
-First clone the repo:
+You can install the OCPI tool from NPM:
 
 ```bash
-git clone git@github.com:ocpi/ocpi-tool.git
+npm install --global ocpi-tool
 ```
 
-Assuming you have npm version 18 or later, you can build the tool like this:
-
-```bash
-npm ci
-
-npm run build
-```
-
-And then you can run the tool like this:
-
-```bash
-node dist/index.js
-```
-
-If you run that you should see this output:
+Then you can use the `ocpi` command in your shell.  If you run that command you should see this output:
 
 ```
 Usage: index [options] [command]
@@ -53,16 +39,6 @@ Commands:
   get [options] <module>  Fetch a page of data of a certain OCPI module
   help [command]          display help for command
 ```
-
-If you want to be able to use the tool as a globally installed `ocpi` command, you can do that like this:
-
-```
-npm ci && npm run build && npm pack
-
-npm i ocpi-tool-0.0.1.tgz -g
-```
-
-If you don't do that, you'll have to read `node dist/index.js` where it says `ocpi` in the example commands below.
 
 ### Basic usage
 
@@ -226,12 +202,6 @@ OCPI 2.2.1 support is not really tested. A known issue is that the cost fields i
 
 Things we hope to add:
 
-  * Finish and test OCPI 2.2.1 support
-
-  * Publishing it to NPM
-
-  * Cleaner error messages to the console
-
   * Joining data, like adding charging station information to exported charging session objects
 
   * Persistent state, so you can export all data since the last export, or run weekly exports
@@ -241,6 +211,28 @@ Things we hope to add:
   * Support for more output formats, like CSV, or documentation of ways to use `jq` to make these
 
   * Whatever you think of. Pull requests welcome!
+
+## Developing on it
+
+First clone the repo:
+
+```bash
+git clone git@github.com:ocpi/ocpi-tool.git
+```
+
+Assuming you have npm version 18 or later, you can build the tool like this:
+
+```bash
+npm ci
+
+npm run build
+```
+
+And then you can run your locally built tool like this:
+
+```bash
+node dist/index.js
+```
 
 ## Copyright and acknowledgements
 
