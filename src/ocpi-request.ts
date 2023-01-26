@@ -1,8 +1,8 @@
 import axios, { AxiosError } from "axios";
-import { readFile, writeFile } from "node:fs/promises";
 import { Readable } from "node:stream";
 import { randomUUID } from "node:crypto";
 import parse from "parse-link-header";
+import { loadSession, LoginSession } from "./login-session";
 
 // A bunch of TODOs at this point:
 //  * better error reporting: not logged in, unexpected HTTP error, auth failure...
@@ -80,13 +80,6 @@ export type OcpiEndpoint = {
 };
 
 export type OcpiVersion = "2.2.1" | "2.2" | "2.1.1" | "2.0" | "2.1";
-
-export type OcpiSession = {
-  token: string;
-  partyId: string;
-  version: OcpiVersion;
-  endpoints: OcpiEndpoint[];
-};
 
 export type OcpiRequestMethod = "get" | "post" | "put" | "delete";
 
@@ -257,7 +250,7 @@ export type NoSuchEndpoint = "no such endpoint";
  * @returns A Node Readable that you can stream the OCPI objects from the module from
  */
 export function fetchDataForModule<N extends ModuleID>(
-  session: OcpiSession,
+  session: LoginSession,
   module: OcpiModule<N>
 ): Readable {
   let nextPage: OcpiPageParameters | "done" | "notstarted" = "notstarted";
@@ -311,7 +304,7 @@ type OcpiPagedGetResponse<T> = {
 };
 
 async function pullPageOfData<N extends ModuleID>(
-  session: OcpiSession,
+  session: LoginSession,
   module: OcpiModule<N>,
   page: OcpiPageParameters
 ): Promise<OcpiPagedGetResponse<OcpiClientOwnedObject> | NoSuchEndpoint> {
@@ -332,26 +325,3 @@ async function pullPageOfData<N extends ModuleID>(
     );
   } else return "no such endpoint";
 }
-
-export const NOT_LOGGED_IN_ERROR_MESSAGE =
-  "You are not logged in to an OCPI platform. Use the `ocpi login` command to log in before getting data.";
-
-export async function loadSession(): Promise<OcpiSession> {
-  try {
-    const sessionFileContents = await readFile(sessionFile(), {
-      encoding: "utf-8",
-    });
-    return JSON.parse(sessionFileContents).session as OcpiSession;
-  } catch {
-    return Promise.reject(new Error(NOT_LOGGED_IN_ERROR_MESSAGE));
-  }
-}
-
-export async function setSession(session: OcpiSession): Promise<void> {
-  return writeFile(sessionFile(), JSON.stringify({ session }), {
-    mode: "0600",
-  });
-}
-
-const sessionFile: () => string = () =>
-  process.env.OCPI_SESSION_FILE ?? `${process.env.HOME}/.ocpi`;

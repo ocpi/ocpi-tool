@@ -1,12 +1,7 @@
 import { exit, stderr, stdout } from "node:process";
 import { pipeline } from "node:stream/promises";
 import { Transform } from "node:stream";
-import {
-  fetchDataForModule,
-  getModuleByName,
-  loadSession,
-  ModuleID,
-} from "../ocpi-request";
+import { fetchDataForModule, getModuleByName, ModuleID } from "../ocpi-request";
 import {
   DescriptorModificationError,
   filter,
@@ -15,6 +10,7 @@ import {
   modulePrivacyDescriptors,
   PrivacyDescriptor,
 } from "../privacy/filter";
+import { loadSession } from "../login-session";
 
 export const get = async (moduleName: string, privacyPass?: string) => {
   const module = getModuleByName(moduleName);

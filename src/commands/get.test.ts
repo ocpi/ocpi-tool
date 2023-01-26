@@ -3,7 +3,7 @@ import { mkdtemp, rmdir } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { get } from "./get";
-import { NOT_LOGGED_IN_ERROR_MESSAGE } from "../ocpi-request";
+import { NOT_LOGGED_IN_ERROR_MESSAGE } from "../login-session";
 
 describe("the get command", () => {
   test("fails when there is no OCPI session file", async () => {
