@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 import { Readable } from "node:stream";
 import { randomUUID } from "node:crypto";
 import parse from "parse-link-header";
-import { loadSession, LoginSession } from "./login-session";
+import { LoginSession } from "./login-session";
 
 // A bunch of TODOs at this point:
 //  * better error reporting: not logged in, unexpected HTTP error, auth failure...
@@ -84,18 +84,17 @@ export type OcpiVersion = "2.2.1" | "2.2" | "2.1.1" | "2.0" | "2.1";
 export type OcpiRequestMethod = "get" | "post" | "put" | "delete";
 
 export async function ocpiRequest<T>(
+  loginSession: LoginSession,
   method: OcpiRequestMethod,
   url: string,
-  fromPartyId?: string,
   toPartyId?: string
 ): Promise<OcpiResponse<T>> {
-  const sessionObject = await loadSession();
   return ocpiRequestRetryingAuthTokenBase64(
     method,
     url,
-    sessionObject.token,
-    sessionObject.version,
-    fromPartyId,
+    loginSession.token,
+    loginSession.version,
+    loginSession.partyId,
     toPartyId
   );
 }
@@ -319,6 +318,7 @@ async function pullPageOfData<N extends ModuleID>(
 
   if (moduleUrl) {
     return ocpiRequest(
+      session,
       "get",
       `${moduleUrl.url}?offset=${page.offset}&limit=${page.limit}`,
       fromPartyId
