@@ -42,20 +42,27 @@ describe("The login command", () => {
     };
     mockXios.mockResolvedValue(testResponse);
 
-    const tempdir = await mkdtemp(path.join(os.tmpdir(), "ocpi-tool-tests-"));
-    process.env["HOME"] = tempdir;
+    let tempdir;
+    try {
+      tempdir = await mkdtemp(path.join(os.tmpdir(), "ocpi-tool-tests-"));
+      process.env["HOME"] = tempdir;
 
-    await login(
-      "https://example.org/ocpi/2.1.1",
-      "whatever-token-abc",
-      "NL-IHO"
-    );
+      await login(
+        "https://example.org/ocpi/2.1.1",
+        "whatever-token-abc",
+        "NL-IHO"
+      );
 
-    await expect(
-      readFile(`${process.env.HOME}/.ocpi`, { encoding: "utf-8" })
-    ).resolves.toMatch("locations");
-
-    await rm(`${tempdir}/.ocpi`);
-    await rmdir(tempdir);
+      await expect(
+        readFile(`${process.env.HOME}/.ocpi`, { encoding: "utf-8" })
+      ).resolves.toMatch("locations");
+    } finally {
+      if (tempdir) {
+        try {
+          await rm(`${tempdir}/.ocpi`);
+        } catch {}
+        await rmdir(tempdir);
+      }
+    }
   });
 });

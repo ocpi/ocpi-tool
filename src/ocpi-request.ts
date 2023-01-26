@@ -257,6 +257,7 @@ export type NoSuchEndpoint = "no such endpoint";
  * @returns A Node Readable that you can stream the OCPI objects from the module from
  */
 export function fetchDataForModule<N extends ModuleID>(
+  session: OcpiSession,
   module: OcpiModule<N>
 ): Readable {
   let nextPage: OcpiPageParameters | "done" | "notstarted" = "notstarted";
@@ -275,6 +276,7 @@ export function fetchDataForModule<N extends ModuleID>(
 
       const firstPageParameters = { offset: 0, limit: size };
       const nextPageData = await pullPageOfData(
+        session,
         module,
         nextPage === "notstarted" ? firstPageParameters : nextPage
       );
@@ -309,16 +311,16 @@ type OcpiPagedGetResponse<T> = {
 };
 
 async function pullPageOfData<N extends ModuleID>(
+  session: OcpiSession,
   module: OcpiModule<N>,
   page: OcpiPageParameters
 ): Promise<OcpiPagedGetResponse<OcpiClientOwnedObject> | NoSuchEndpoint> {
-  const sess = await loadSession();
   const fromPartyId =
-    sess.version === "2.2" || sess.version === "2.2.1"
-      ? sess.partyId
+    session.version === "2.2" || session.version === "2.2.1"
+      ? session.partyId
       : undefined;
 
-  const moduleUrl = sess.endpoints.find(
+  const moduleUrl = session.endpoints.find(
     (ep) => ep.identifier === module.name && ep.role !== "RECEIVER"
   );
 
@@ -331,11 +333,18 @@ async function pullPageOfData<N extends ModuleID>(
   } else return "no such endpoint";
 }
 
+export const NOT_LOGGED_IN_ERROR_MESSAGE =
+  "You are not logged in to an OCPI platform. Use the `ocpi login` command to log in before getting data.";
+
 export async function loadSession(): Promise<OcpiSession> {
-  const sessionFileContents = await readFile(sessionFile(), {
-    encoding: "utf-8",
-  });
-  return JSON.parse(sessionFileContents).session as OcpiSession;
+  try {
+    const sessionFileContents = await readFile(sessionFile(), {
+      encoding: "utf-8",
+    });
+    return JSON.parse(sessionFileContents).session as OcpiSession;
+  } catch {
+    return Promise.reject(new Error(NOT_LOGGED_IN_ERROR_MESSAGE));
+  }
 }
 
 export async function setSession(session: OcpiSession): Promise<void> {

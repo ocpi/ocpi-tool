@@ -1,7 +1,12 @@
 import { exit, stderr, stdout } from "node:process";
 import { pipeline } from "node:stream/promises";
 import { Transform } from "node:stream";
-import { fetchDataForModule, getModuleByName, ModuleID } from "../ocpi-request";
+import {
+  fetchDataForModule,
+  getModuleByName,
+  loadSession,
+  ModuleID,
+} from "../ocpi-request";
 import {
   DescriptorModificationError,
   filter,
@@ -18,6 +23,8 @@ export const get = async (moduleName: string, privacyPass?: string) => {
     stderr.write(`Unknown OCPI module ${moduleName}\n`);
     exit(1);
   }
+
+  const session = await loadSession();
 
   const defaultPrivacyDescriptorForModule =
     modulePrivacyDescriptors[module.name as ModuleID];
@@ -45,7 +52,7 @@ export const get = async (moduleName: string, privacyPass?: string) => {
     );
   }
 
-  const ocpiObjectStream = fetchDataForModule(module);
+  const ocpiObjectStream = fetchDataForModule(session, module);
 
   const privacyFilteringStream = new Transform({
     objectMode: true,
