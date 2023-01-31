@@ -19,13 +19,7 @@ type OcpiClientOwnedObject = Record<string, any>;
  *
  * This is restricted to the so-called 'Functional Modules', that serve data that can be exported using this tool
  */
-export type ModuleID =
-  | "cdrs"
-  | "chargingprofiles"
-  | "locations"
-  | "sessions"
-  | "tariffs"
-  | "tokens";
+export type ModuleID = "cdrs" | "locations" | "sessions" | "tariffs" | "tokens";
 
 export type OcpiModule<Name extends ModuleID> = {
   name: Name & string;
@@ -79,7 +73,10 @@ export type OcpiEndpoint = {
   role?: OcpiRole;
 };
 
-export type OcpiVersion = "2.2.1" | "2.2" | "2.1.1" | "2.0" | "2.1";
+/**
+ * All versions of OCPI that the tool supports
+ */
+export type OcpiVersion = "2.2.1" | "2.1.1";
 
 export type OcpiRequestMethod = "get" | "post" | "put" | "delete";
 
@@ -107,8 +104,7 @@ export async function ocpiRequestRetryingAuthTokenBase64<T>(
   fromPartyId?: string,
   toPartyId?: string
 ): Promise<OcpiResponse<T>> {
-  const tryWithEncodedAuthTokenFirst =
-    ocpiVersion === "2.2.1" || ocpiVersion === "2.2";
+  const tryWithEncodedAuthTokenFirst = ocpiVersion === "2.2.1";
 
   const responseToFirstTry = await ocpiRequestWithGivenToken(
     method,
@@ -307,10 +303,7 @@ async function pullPageOfData<N extends ModuleID>(
   module: OcpiModule<N>,
   page: OcpiPageParameters
 ): Promise<OcpiPagedGetResponse<OcpiClientOwnedObject> | NoSuchEndpoint> {
-  const fromPartyId =
-    session.version === "2.2" || session.version === "2.2.1"
-      ? session.partyId
-      : undefined;
+  const fromPartyId = session.version === "2.2.1" ? session.partyId : undefined;
 
   const moduleUrl = session.endpoints.find(
     (ep) => ep.identifier === module.name && ep.role !== "RECEIVER"

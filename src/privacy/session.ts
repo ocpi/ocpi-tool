@@ -1,5 +1,5 @@
 import { PrivacyDescriptor } from "./filter";
-import { chargingPeriodDescriptor } from "./common";
+import { chargingPeriodDescriptor, privatePriceDescriptor } from "./common";
 
 export const cdrTokenDescriptor: PrivacyDescriptor = {
   country_code: "pass",
@@ -9,7 +9,7 @@ export const cdrTokenDescriptor: PrivacyDescriptor = {
   contract_id: "na",
 };
 
-export const sessionDescriptor: PrivacyDescriptor = {
+export const sessionDescriptorV211: PrivacyDescriptor = {
   country_code: "pass",
   party_id: "pass",
   id: "pass",
@@ -31,4 +31,9 @@ export const sessionDescriptor: PrivacyDescriptor = {
   total_cost: "na",
   status: "na",
   last_updated: "na",
+};
+
+export const sessionDescriptorV221: PrivacyDescriptor = {
+  ...sessionDescriptorV211,
+  total_cost: privatePriceDescriptor,
 };

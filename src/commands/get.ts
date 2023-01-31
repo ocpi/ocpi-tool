@@ -23,10 +23,10 @@ export const get = async (moduleName: string, privacyPass?: string) => {
   const session = await loadSession();
 
   const defaultPrivacyDescriptorForModule =
-    modulePrivacyDescriptors[module.name as ModuleID];
+    modulePrivacyDescriptors[module.name as ModuleID][session.version];
   if (defaultPrivacyDescriptorForModule === null) {
     throw new Error(
-      `No privacy descriptor defined for module [${module.name}]`
+      `No privacy descriptor defined for module [${module.name}] at version [${session.version}]`
     );
   }
   const privacyDescriptorModifiersToPass = privacyPass?.split(",");

@@ -1,7 +1,7 @@
-import { ModuleID } from "../ocpi-request";
+import { ModuleID, OcpiVersion } from "../ocpi-request";
 
 import { locationDescriptor } from "./location";
-import { sessionDescriptor } from "./session";
+import { sessionDescriptorV211, sessionDescriptorV221 } from "./session";
 import { cdrDescriptor } from "./cdr";
 import { tariffDescriptor } from "./tariff";
 import { tokenDescriptor } from "./token";
@@ -21,14 +21,13 @@ type ArrayDescriptor = [PrivacyDescriptor];
 
 export const modulePrivacyDescriptors: Record<
   ModuleID,
-  PrivacyDescriptor | null
+  Record<OcpiVersion, PrivacyDescriptor>
 > = {
-  cdrs: cdrDescriptor,
-  chargingprofiles: null,
-  locations: locationDescriptor,
-  sessions: sessionDescriptor,
-  tariffs: tariffDescriptor,
-  tokens: tokenDescriptor,
+  cdrs: { "2.1.1": cdrDescriptor, "2.2.1": cdrDescriptor },
+  locations: { "2.1.1": locationDescriptor, "2.2.1": locationDescriptor },
+  sessions: { "2.1.1": sessionDescriptorV211, "2.2.1": sessionDescriptorV221 },
+  tariffs: { "2.1.1": tariffDescriptor, "2.2.1": tariffDescriptor },
+  tokens: { "2.1.1": tokenDescriptor, "2.2.1": tokenDescriptor },
 };
 
 interface UnrecognizedPropertyError extends Error {
