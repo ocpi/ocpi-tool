@@ -5,6 +5,14 @@ export const cdrDimensionDescriptor: PrivacyDescriptor = {
   volume: "na",
 };
 
+export const cdrTokenDescriptor: PrivacyDescriptor = {
+  country_code: "pass",
+  party_id: "pass",
+  uid: "na",
+  type: "pass",
+  contract_id: "na",
+};
+
 export const chargingPeriodDescriptor: PrivacyDescriptor = {
   start_date_time: "na",
   dimensions: [cdrDimensionDescriptor],
@@ -27,6 +35,12 @@ export const energyMixDescriptor: PrivacyDescriptor = {
   ],
   supplier_name: "na",
   energy_product_name: "na",
+};
+
+export const geoLocationDescriptor: PrivacyDescriptor = {
+  latitude: "na",
+  longitude: "na",
+  name: "na",
 };
 
 export const privateDisplayTextDescriptor: PrivacyDescriptor = {

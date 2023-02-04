@@ -1,13 +1,9 @@
 import { PrivacyDescriptor } from "./filter";
-import { chargingPeriodDescriptor, privatePriceDescriptor } from "./common";
-
-export const cdrTokenDescriptor: PrivacyDescriptor = {
-  country_code: "pass",
-  party_id: "pass",
-  uid: "na",
-  type: "pass",
-  contract_id: "na",
-};
+import {
+  cdrTokenDescriptor,
+  chargingPeriodDescriptor,
+  privatePriceDescriptor,
+} from "./common";
 
 export const sessionDescriptorV211: PrivacyDescriptor = {
   country_code: "pass",

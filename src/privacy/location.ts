@@ -1,11 +1,5 @@
 import { PrivacyDescriptor } from "./filter";
-import { energyMixDescriptor } from "./common";
-
-const geoLocationDescriptor: PrivacyDescriptor = {
-  latitude: "na",
-  longitude: "na",
-  name: "na",
-};
+import { energyMixDescriptor, geoLocationDescriptor } from "./common";
 
 const imageDescriptor: PrivacyDescriptor = {
   url: "na",
