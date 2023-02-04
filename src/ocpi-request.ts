@@ -262,16 +262,22 @@ export function fetchDataForModule<N extends ModuleID>(
         return;
       }
 
-      const firstPageParameters = { offset: 0, limit: size };
-      const nextPageData = await pullPageOfData(
-        session,
-        module,
-        nextPage === "notstarted" ? firstPageParameters : nextPage
-      );
-      if (nextPageData === "no such endpoint") {
-        throw new Error(`no endpoint found for module ${module.name}`);
+      let nextPageData;
+      try {
+        const firstPageParameters = { offset: 0, limit: size };
+        nextPageData = await pullPageOfData(
+          session,
+          module,
+          nextPage === "notstarted" ? firstPageParameters : nextPage
+        );
+        if (nextPageData === "no such endpoint") {
+          throw new Error(`no endpoint found for module ${module.name}`);
+        }
+        console.debug("Page fetched", nextPageData);
+      } catch (err) {
+        this.emit("error", err);
+        return;
       }
-      console.debug("Page fetched", nextPageData);
 
       nextPage = nextPageData.nextPage ?? "done";
 

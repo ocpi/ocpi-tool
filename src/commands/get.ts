@@ -74,10 +74,16 @@ export const get = async (moduleName: string, privacyPass?: string) => {
     },
   });
 
-  pipeline(
-    ocpiObjectStream,
-    privacyFilteringStream,
-    jsonEncodingStream,
-    stdout
-  );
+  try {
+    await pipeline(
+      ocpiObjectStream.on("error", () => console.debug("aargh!")),
+      privacyFilteringStream,
+      jsonEncodingStream,
+      stdout
+    );
+  } catch (err) {
+    console.log(
+      `Error fetching data from OCPI platform: ${(err as Error)?.message}`
+    );
+  }
 };
