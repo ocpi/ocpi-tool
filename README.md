@@ -47,7 +47,7 @@ Commands:
 2. The CPO runs the tool to set it up to extract data for the consumer partner:
 
 ```bash
-ocpi  login http://example.org/url-to-version-endpoint --party-id XX-YYY --token token-for-partner-from-step-1
+ocpi  login http://example.org/url-to-version-endpoint --party XX-YYY --token token-for-partner-from-step-1
 ```
 
 where `XX-YYY` is replaced by a party ID for the party consuming the output of the tool. OCPI, at least in version 2.2.1, requires a party ID to be presented in every request so the tool needs one in order to contact the platform it is getting data from.
