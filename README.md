@@ -29,7 +29,7 @@ npm install --global ocpi-tool
 Then you can use the `ocpi` command in your shell.  If you run that command you should see this output:
 
 ```
-Usage: index [options] [command]
+Usage: ocpi [options] [command]
 
 Options:
   -h, --help              display help for command
@@ -231,7 +231,7 @@ npm run build
 And then you can run your locally built tool like this:
 
 ```bash
-node dist/index.js
+node dist/ocpi.js
 ```
 
 ## Copyright and acknowledgements
