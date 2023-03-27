@@ -3,6 +3,7 @@ import { stderr } from "node:process";
 import { Command } from "commander";
 import { INPUT_PARTY_ID_REGEX, login } from "./commands/login";
 import { get } from "./commands/get";
+import {authorize} from "./commands/token/authorize";
 
 // send all console messages to stderr so people can pipe OCPI objects over
 // stdout and see the progress messages written to stdout at the same time
@@ -12,34 +13,22 @@ console = new Console({ stdout: stderr, stderr });
 console.debug = () => {};
 
 const program = new Command();
-
 program
-  .command("login")
-  .description("Log in to an OCPI platform")
-  .argument("url", "The versions URL for the platform to log in to")
-  .requiredOption(
-    "--token <token>",
-    "The authentication token for communication with the other platform"
-  )
-  .requiredOption(
-    "--party <party>",
-    "The party ID that the tool is connecting to the platform as, like DE-ABC or FR-XYZ",
-    INPUT_PARTY_ID_REGEX
-  )
-  .action((url: string, options) => login(url, options.token, options.party));
-
-program
-  .command("get <module>")
-  .description("Fetch a page of data of a certain OCPI module")
+  .command("get")
+  .description("Fetch a page of Token data")
   .option(
     "--privacy-pass <field list>",
     "List of fields to exclude from privacy filtering"
   )
   .action((moduleName: string, options) =>
-    get(moduleName, options["privacyPass"])
+    get("token", options["privacyPass"])
   );
 
 program
-  .command("token","Interact with the remote TOKEN module")
+  .command("authorize <uid>")
+  .description("Retrieve validation status of an uid using real time authorization")
+  .action((uid: string, options) =>
+      authorize(uid)
+  );
 
 program.parse();
