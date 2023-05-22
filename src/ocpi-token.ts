@@ -20,8 +20,10 @@ program
     "--privacy-pass <field list>",
     "List of fields to exclude from privacy filtering"
   )
-  .action((moduleName: string, options) =>
-    get("token", options["privacyPass"])
+  .action((moduleName: string, options) => {
+    console.log(options)
+    get("tokens", options["privacyPass"])
+  }
   );
 
 program

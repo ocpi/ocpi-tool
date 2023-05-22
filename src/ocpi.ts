@@ -40,6 +40,6 @@ program
   );
 
 program
-  .command("token","Interact with the remote TOKEN module")
+  .command("token","Interact with the remote TOKENS module")
 
 program.parse();
