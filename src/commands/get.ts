@@ -68,10 +68,20 @@ export const get = async (moduleName: string, privacyPass?: string) => {
 
   const jsonEncodingStream = new Transform({
     writableObjectMode: true,
-    transform(chunk, encoding, callback) {
-      this.push(JSON.stringify(chunk));
+    construct(callback) {
+      this.push("[");
       callback();
     },
+    transform(chunk, encoding, callback) {
+      this.emit("append_item");
+      this.push(JSON.stringify(chunk));
+      this.once("append_item", () => { this.push(",") });
+      callback();
+    },
+    flush(callback) {
+      this.push("]");
+      callback();
+    }
   });
 
   try {
