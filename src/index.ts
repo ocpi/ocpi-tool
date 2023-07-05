@@ -3,7 +3,7 @@ import { stderr } from "node:process";
 import { Command } from "commander";
 import { INPUT_PARTY_ID_REGEX, login } from "./commands/login";
 import { get } from "./commands/get";
-import parseDate from "./coersion/parseDate";
+import parseDate from "./coercion/parseDate";
 
 // send all console messages to stderr so people can pipe OCPI objects over
 // stdout and see the progress messages written to stdout at the same time
