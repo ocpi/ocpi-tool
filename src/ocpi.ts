@@ -39,4 +39,7 @@ program
     get(moduleName, options["privacyPass"])
   );
 
+program
+  .command("token","Interact with the remote TOKENS module")
+
 program.parse();

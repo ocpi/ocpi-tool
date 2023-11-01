@@ -12,7 +12,7 @@ import { LoginSession } from "./login-session";
  *
  * We can assume almost nothing about those so it's just a record from string to pretty much anything.
  */
-type OcpiClientOwnedObject = Record<string, any>;
+export type OcpiClientOwnedObject = Record<string, any>;
 
 /**
  * The identifiers of OCPI modules.
@@ -52,7 +52,7 @@ export function getModuleByName(moduleName: string): OcpiModule<any> | null {
   );
 }
 
-type OcpiPageParameters = {
+export type OcpiPageParameters = {
   offset: number;
   limit: number;
 };
@@ -183,6 +183,7 @@ const ocpiRequestWithLiteralAuthHeaderTokenValue: <T>(
   };
 
   const routingHeaders = routingHeadersFromPartyIds(fromPartyId, toPartyId);
+  const otherHeaders = routingHeadersFromPartyIds(fromPartyId, toPartyId);
 
   let resp;
   try {
@@ -192,6 +193,7 @@ const ocpiRequestWithLiteralAuthHeaderTokenValue: <T>(
         Authorization: authHeaderValue,
         ...tracingHeaders,
         ...routingHeaders,
+        ...{'Content-Type': 'application/json'},
       },
     });
   } catch (error) {
@@ -299,7 +301,7 @@ export function fetchDataForModule<N extends ModuleID>(
   });
 }
 
-type OcpiPagedGetResponse<T> = {
+export type OcpiPagedGetResponse<T> = {
   data?: T[];
   nextPage?: OcpiPageParameters;
 };

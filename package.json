@@ -2,7 +2,7 @@
   "name": "ocpi-tool",
   "version": "1.0.0",
   "description": "A command-line tool for exporting data from OCPI platforms",
-  "main": "dist/index.js",
+  "main": "dist/ocpi.js",
   "scripts": {
     "test": "jest --coverage",
     "build": "tsc -b"
