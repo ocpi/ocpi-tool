@@ -24,22 +24,31 @@ const displayTextDescriptor: PrivacyDescriptor = {
   text: "na",
 };
 
-const connectorDescriptor: PrivacyDescriptor = {
+const baseConnectorDescriptor: PrivacyDescriptor = {
   id: "pass",
   standard: "pass",
   format: "pass",
   power_type: "pass",
-  voltage: "pass",
-  amperage: "pass",
-  max_voltage: "pass",
-  max_amperage: "pass",
-  max_electric_power: "pass",
-  tariff_ids: ["pass"],
   terms_and_conditions: "pass",
   last_updated: "na",
 };
 
-const evseDescriptor: PrivacyDescriptor = {
+const connectorDescriptorV211: PrivacyDescriptor = {
+  ...baseConnectorDescriptor,
+  voltage: "pass",
+  amperage: "pass",
+  tariff_id: "pass",
+};
+
+const connectorDescriptorV221: PrivacyDescriptor = {
+  ...baseConnectorDescriptor,
+  max_voltage: "pass",
+  max_amperage: "pass",
+  max_electric_power: "pass",
+  tariff_ids: ["pass"],
+};
+
+const evseDescriptorV211: PrivacyDescriptor = {
   uid: "pass",
   evse_id: "na",
   status: "na",
@@ -58,7 +67,7 @@ const evseDescriptor: PrivacyDescriptor = {
     },
   ],
   capabilities: ["pass"],
-  connectors: [connectorDescriptor],
+  connectors: [connectorDescriptorV211],
   floor_level: "pass",
   coordinates: geoLocationDescriptor,
   physical_reference: "na",
@@ -68,7 +77,12 @@ const evseDescriptor: PrivacyDescriptor = {
   last_updated: "na",
 };
 
-export const locationDescriptor: PrivacyDescriptor = {
+const evseDescriptorV221: PrivacyDescriptor = {
+  ...evseDescriptorV211,
+  connectors: [connectorDescriptorV221],
+};
+
+export const locationDescriptorV211: PrivacyDescriptor = {
   country_code: "pass",
   party_id: "pass",
   id: "pass",
@@ -92,7 +106,7 @@ export const locationDescriptor: PrivacyDescriptor = {
   coordinates: geoLocationDescriptor,
   related_locations: geoLocationDescriptor,
   parking_type: "pass",
-  evses: [evseDescriptor],
+  evses: [evseDescriptorV211],
   directions: [displayTextDescriptor],
   operator: {
     name: "pass",
@@ -137,4 +151,9 @@ export const locationDescriptor: PrivacyDescriptor = {
   images: [imageDescriptor],
   energy_mix: [energyMixDescriptor],
   last_updated: "na",
+};
+
+export const locationDescriptorV221: PrivacyDescriptor = {
+  ...locationDescriptorV211,
+  evses: [evseDescriptorV221],
 };
