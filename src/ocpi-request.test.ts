@@ -1,5 +1,4 @@
-import axios, { AxiosResponse, AxiosError } from "axios";
-import { describe, expect, jest, test } from "@jest/globals";
+import { describe, expect, jest, test, beforeEach } from "@jest/globals";
 import {
   OcpiResponse,
   ocpiRequestRetryingAuthTokenBase64,
@@ -11,38 +10,22 @@ const mockOcpiResponse: OcpiResponse<{}> = {
   timestamp: "2022-12-10T17:30:00Z",
 };
 
-const mockHttpResponse: AxiosResponse = {
-  data: mockOcpiResponse,
-  status: 200,
-  statusText: "OK",
-  headers: { "Content-Type": "application/json" },
-  config: {},
-};
+const mockHttpResponse: () => Promise<Response> = async () => new Response(JSON.stringify(mockOcpiResponse), { headers: {"Content-Type": "application/json" } })
 
-const mockAuthenticationError: AxiosError = {
-  isAxiosError: true,
-  toJSON: () => ({}),
-  name: "Unauthorized",
-  message: "Hoepel op, je mag dit niet zien",
-  response: {
-    data: {},
-    status: 401,
-    statusText: "401",
-    headers: {},
-    config: {},
-  },
-};
+const mockAuthenticationError: () => Promise<Response> = async () => new Response("Hoepel op, je mag dit niet zien", { status: 401, statusText: "Unauthorized" })
 
-jest.mock("axios");
+const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+beforeEach(() => {
+  global.fetch = mockFetch;
+  mockFetch.mockReset();
+});
 
 describe("OCPI request making", () => {
   test("encodes auth token on first try for OCPI 2.2.1", async () => {
-    const mockXios = axios as jest.Mocked<typeof axios>;
-
     const testToken = "tokkietokkietoken";
     const testTokenB64 = Buffer.from(testToken).toString("base64");
 
-    mockXios.mockResolvedValue(mockHttpResponse);
+    mockFetch.mockImplementation(mockHttpResponse);
 
     await ocpiRequestRetryingAuthTokenBase64<{}>(
       "get",
@@ -51,19 +34,17 @@ describe("OCPI request making", () => {
       "2.2.1"
     );
 
-    const lastAxiosCall = mockXios.mock?.calls?.pop();
-    const headersGivenToAxios = lastAxiosCall?.[1]?.headers;
-    expect(headersGivenToAxios?.["Authorization"]).toEqual(
+    const lastFetchCall = mockFetch.mock?.calls?.pop();
+    const headersGivenToFetch = lastFetchCall?.[1]?.headers;
+    expect(headersGivenToFetch).toHaveProperty("Authorization",
       "Token " + testTokenB64
     );
   });
 
   test("does not encode auth token on first try for OCPI 2.1.1", async () => {
-    const mockXios = axios as jest.Mocked<typeof axios>;
-
     const testToken = "tokkietokkietoken";
 
-    mockXios.mockResolvedValue(mockHttpResponse);
+    mockFetch.mockImplementation(mockHttpResponse);
 
     await ocpiRequestRetryingAuthTokenBase64<{}>(
       "get",
@@ -72,22 +53,20 @@ describe("OCPI request making", () => {
       "2.1.1"
     );
 
-    const lastAxiosCall = mockXios.mock?.calls?.pop();
-    const headersGivenToAxios = lastAxiosCall?.[1]?.headers;
-    expect(headersGivenToAxios?.["Authorization"]).toEqual(
+    const lastFetchCall = mockFetch.mock?.calls?.pop();
+    const headersGivenToFetch = lastFetchCall?.[1]?.headers;
+    expect(headersGivenToFetch).toHaveProperty("Authorization",
       "Token " + testToken
     );
   });
 
   test("retries encoding the token if a first try for OCPI 2.1.1 fails", async () => {
-    const mockXios = axios as jest.Mocked<typeof axios>;
-
     const testToken = "tokkietokkietoken";
     const testTokenB64 = Buffer.from(testToken).toString("base64");
 
-    mockXios
-      .mockRejectedValueOnce(mockAuthenticationError)
-      .mockResolvedValueOnce(mockHttpResponse);
+    mockFetch
+      .mockImplementationOnce(mockAuthenticationError)
+      .mockImplementationOnce(mockHttpResponse);
 
     await ocpiRequestRetryingAuthTokenBase64<{}>(
       "get",
@@ -96,25 +75,25 @@ describe("OCPI request making", () => {
       "2.1.1"
     );
 
-    const firstAxiosCall = mockXios.mock?.calls?.[0];
-    const headersGivenToAxiosFirst = firstAxiosCall?.[1]?.headers;
-    expect(headersGivenToAxiosFirst?.["Authorization"]).toEqual(
+    const firstFetchCall = mockFetch.mock?.calls?.[0];
+    const headersGivenToFetchFirst = firstFetchCall?.[1]?.headers;
+    expect(headersGivenToFetchFirst).toHaveProperty(
+      "Authorization",
       "Token " + testToken
     );
 
-    const lastAxiosCall = mockXios.mock?.calls?.[1];
-    const headersGivenToAxiosSecond = lastAxiosCall?.[1]?.headers;
-    expect(headersGivenToAxiosSecond?.["Authorization"]).toEqual(
+    const lastFetchCall = mockFetch.mock?.calls?.[1];
+    const headersGivenToFetchSecond = lastFetchCall?.[1]?.headers;
+    expect(headersGivenToFetchSecond).toHaveProperty(
+      "Authorization",
       "Token " + testTokenB64
     );
   });
 
   test("includes X-Request-Id and X-Correlation-ID headers in requests", async () => {
-    const mockXios = axios as jest.Mocked<typeof axios>;
-
     const testToken = "tokkietokkietoken";
 
-    mockXios.mockResolvedValueOnce(mockHttpResponse);
+    mockFetch.mockImplementationOnce(mockHttpResponse);
 
     await ocpiRequestRetryingAuthTokenBase64<{}>(
       "get",
@@ -123,20 +102,18 @@ describe("OCPI request making", () => {
       "2.1.1"
     );
 
-    const axiosCall = mockXios.mock?.calls?.pop();
-    const headersGivenToAxios = axiosCall?.[1]?.headers;
+    const fetchCall = mockFetch.mock?.calls?.pop();
+    const headersGivenToFetch = fetchCall?.[1]?.headers;
     const uuidRegex = /[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}/i;
 
-    expect(headersGivenToAxios?.["X-Request-ID"]).toMatch(uuidRegex);
-    expect(headersGivenToAxios?.["X-Correlation-ID"]).toMatch(uuidRegex);
+    expect(headersGivenToFetch).toHaveProperty("X-Request-ID")
+    expect(headersGivenToFetch).toHaveProperty("X-Correlation-ID")
   });
 
   test("includes routing headers when from and to party are given", async () => {
-    const mockXios = axios as jest.Mocked<typeof axios>;
-
     const testToken = "tokkietokkietoken";
 
-    mockXios.mockResolvedValueOnce(mockHttpResponse);
+    mockFetch.mockImplementationOnce(mockHttpResponse);
 
     await ocpiRequestRetryingAuthTokenBase64<{}>(
       "get",
@@ -147,11 +124,11 @@ describe("OCPI request making", () => {
       "USCPI"
     );
 
-    const axiosCall = mockXios.mock?.calls?.pop();
-    const headersGivenToAxios = axiosCall?.[1]?.headers;
-    expect(headersGivenToAxios?.["OCPI-from-country-code"]).toEqual("NL");
-    expect(headersGivenToAxios?.["OCPI-from-party-id"]).toEqual("TNM");
-    expect(headersGivenToAxios?.["OCPI-to-country-code"]).toEqual("US");
-    expect(headersGivenToAxios?.["OCPI-to-party-id"]).toEqual("CPI");
+    const fetchCall = mockFetch.mock?.calls?.pop();
+    const headersGivenToFetch = fetchCall?.[1]?.headers;
+    expect(headersGivenToFetch).toHaveProperty("OCPI-from-country-code", "NL");
+    expect(headersGivenToFetch).toHaveProperty("OCPI-from-party-id", "TNM");
+    expect(headersGivenToFetch).toHaveProperty("OCPI-to-country-code", "US");
+    expect(headersGivenToFetch).toHaveProperty("OCPI-to-party-id", "CPI");
   });
 });

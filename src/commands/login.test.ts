@@ -1,18 +1,20 @@
-import axios, { AxiosError, AxiosResponse } from "axios";
-import { describe, expect, jest, test } from "@jest/globals";
+import { describe, expect, jest, test, beforeEach } from "@jest/globals";
 import { OcpiResponse } from "../ocpi-request";
 import { login } from "./login";
 import { mkdir, mkdtemp, readFile, rm, rmdir } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 
-jest.mock("axios");
+const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 
-const mockXios = axios as jest.Mocked<typeof axios>;
+beforeEach(() => {
+  global.fetch = mockFetch;
+  mockFetch.mockReset();
+});
 
 describe("The login command", () => {
   test("throws an exception if we pass it a hostname that fails to resolve", async () => {
-    mockXios.mockRejectedValue(new AxiosError("aargh"));
+    mockFetch.mockRejectedValue(new Error("aargh"));
 
     await expect(
       login("https://example.com/", "whatever-token-abc", "NL-IHO")
@@ -33,14 +35,8 @@ describe("The login command", () => {
       status_code: 1000,
       timestamp: "2022-11-26T09:16:00Z",
     };
-    const testResponse: AxiosResponse = {
-      data: testOcpiResponse,
-      status: 200,
-      statusText: "Ok",
-      headers: { "Content-Type": "application/json" },
-      config: {},
-    };
-    mockXios.mockResolvedValue(testResponse);
+    const testResponse: Response = new Response(JSON.stringify(testOcpiResponse), { headers : { "Content-Type": "application/json" } })
+    mockFetch.mockResolvedValue(testResponse);
 
     let tempdir;
     try {

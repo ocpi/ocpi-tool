@@ -1,4 +1,3 @@
-import axios, { AxiosError } from "axios";
 import { Readable } from "node:stream";
 import { randomUUID } from "node:crypto";
 import parse from "parse-link-header";
@@ -6,6 +5,10 @@ import { LoginSession } from "./login-session";
 
 // A bunch of TODOs at this point:
 //  * better error reporting: not logged in, unexpected HTTP error, auth failure...
+type HttpRequestError = {
+  httpStatus?: number,
+  message: string
+}
 
 /**
  * The type of each of the data objects that we get out of an OCPI platform.
@@ -114,11 +117,10 @@ export async function ocpiRequestRetryingAuthTokenBase64<T>(
     fromPartyId,
     toPartyId
   );
-  if ("isAxiosError" in responseToFirstTry && responseToFirstTry.isAxiosError) {
+  if ("httpStatus" in responseToFirstTry && responseToFirstTry?.httpStatus) {
     const mayBeAuthenticationProblem =
-      responseToFirstTry.response &&
-      responseToFirstTry.response?.status >= 400 &&
-      responseToFirstTry.response?.status < 500;
+      responseToFirstTry.httpStatus >= 400 &&
+      responseToFirstTry.httpStatus < 500;
     if (mayBeAuthenticationProblem) {
       const responseToSecondTry = await ocpiRequestWithGivenToken(
         method,
@@ -129,8 +131,7 @@ export async function ocpiRequestRetryingAuthTokenBase64<T>(
         toPartyId
       );
       if (
-        "isAxiosError" in responseToSecondTry &&
-        responseToSecondTry.isAxiosError
+        "httpStatus" in responseToSecondTry
       ) {
         throw responseToSecondTry;
       } else {
@@ -151,7 +152,7 @@ async function ocpiRequestWithGivenToken<T>(
   encodeToken: boolean,
   fromPartyId?: string,
   toPartyId?: string
-): Promise<OcpiResponse<T> | AxiosError> {
+): Promise<OcpiResponse<T> | HttpRequestError> {
   const authHeaderValue =
     "Token " + (encodeToken ? Buffer.from(token).toString("base64") : token);
 
@@ -170,7 +171,7 @@ const ocpiRequestWithLiteralAuthHeaderTokenValue: <T>(
   authHeaderValue: string,
   fromPartyId?: string,
   toPartyId?: string
-) => Promise<OcpiResponse<T> | AxiosError> = async <T>(
+) => Promise<OcpiResponse<T> | HttpRequestError> = async <T>(
   method: OcpiRequestMethod,
   url: string,
   authHeaderValue: string,
@@ -185,23 +186,23 @@ const ocpiRequestWithLiteralAuthHeaderTokenValue: <T>(
   const routingHeaders = routingHeadersFromPartyIds(fromPartyId, toPartyId);
 
   let resp;
-  try {
-    resp = await axios(url, {
-      method: method,
-      headers: {
-        Authorization: authHeaderValue,
-        ...tracingHeaders,
-        ...routingHeaders,
-      },
-    });
-  } catch (error) {
-    const axiosError = error as AxiosError;
-    if (axiosError.isAxiosError) {
-      return axiosError;
-    } else throw error;
+  resp = await fetch(url, {
+    method: method,
+    headers: {
+      Authorization: authHeaderValue,
+      ...tracingHeaders,
+      ...routingHeaders,
+    },
+  });
+
+  if (!resp.ok) {
+    return {
+      httpStatus: resp.status,
+      message: await resp.text()
+    }
   }
 
-  const headerLinks = parse(resp.headers["link"]);
+  const headerLinks = parse(resp.headers.get("link"));
   const linkToNextPage = headerLinks === null ? null : headerLinks["next"];
   const nextPage =
     linkToNextPage === null
@@ -211,7 +212,7 @@ const ocpiRequestWithLiteralAuthHeaderTokenValue: <T>(
           limit: linkToNextPage?.limit,
         };
 
-  const ocpiResponse = { ...resp.data, nextPage } as OcpiResponse<T>;
+  const ocpiResponse = { ...(await resp.json()), nextPage } as OcpiResponse<T>;
   return ocpiResponse;
 };
 
