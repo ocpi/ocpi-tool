@@ -1,4 +1,4 @@
-import { locationDescriptor } from "./location";
+import { locationDescriptorV211 } from "./location";
 import {
   chargingPeriodDescriptor,
   cdrTokenDescriptor,
@@ -56,7 +56,7 @@ export const cdrDescriptorV211: PrivacyDescriptor = {
   ...baseCdrDescriptor,
   stop_date_time: "na",
   auth_id: "na",
-  location: locationDescriptor,
+  location: locationDescriptorV211,
   total_cost: "na",
 };
 

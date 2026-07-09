@@ -1,6 +1,6 @@
 import { ModuleID, OcpiVersion } from "../ocpi-request";
 
-import { locationDescriptor } from "./location";
+import { locationDescriptorV211, locationDescriptorV221 } from "./location";
 import { sessionDescriptorV211, sessionDescriptorV221 } from "./session";
 import { cdrDescriptorV211, cdrDescriptorV221 } from "./cdr";
 import { tariffDescriptor } from "./tariff";
@@ -24,7 +24,7 @@ export const modulePrivacyDescriptors: Record<
   Record<OcpiVersion, PrivacyDescriptor>
 > = {
   cdrs: { "2.1.1": cdrDescriptorV211, "2.2.1": cdrDescriptorV221 },
-  locations: { "2.1.1": locationDescriptor, "2.2.1": locationDescriptor },
+  locations: { "2.1.1": locationDescriptorV211, "2.2.1": locationDescriptorV221 },
   sessions: { "2.1.1": sessionDescriptorV211, "2.2.1": sessionDescriptorV221 },
   tariffs: { "2.1.1": tariffDescriptor, "2.2.1": tariffDescriptor },
   tokens: { "2.1.1": tokenDescriptor, "2.2.1": tokenDescriptor },
