@@ -3,6 +3,7 @@ import { stderr } from "node:process";
 import { Command } from "commander";
 import { INPUT_PARTY_ID_REGEX, login } from "./commands/login";
 import { get } from "./commands/get";
+import parseDate from "./coercion/parseDate";
 
 // send all console messages to stderr so people can pipe OCPI objects over
 // stdout and see the progress messages written to stdout at the same time
@@ -31,12 +32,17 @@ program
 program
   .command("get <module>")
   .description("Fetch a page of data of a certain OCPI module")
+  .option<Date>(
+    "--date-from <ISO 8601 datetime>",
+    "Limits objects returned to those that have last_updated after or equal to this value",
+    parseDate
+  )
   .option(
     "--privacy-pass <field list>",
     "List of fields to exclude from privacy filtering"
   )
   .action((moduleName: string, options) =>
-    get(moduleName, options["privacyPass"])
+    get(moduleName, options["dateFrom"], options["privacyPass"])
   );
 
 program.parse();

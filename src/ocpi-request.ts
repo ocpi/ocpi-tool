@@ -58,6 +58,7 @@ export function getModuleByName(moduleName: string): OcpiModule<any> | null {
 type OcpiPageParameters = {
   offset: number;
   limit: number;
+  date_from?: string;
 };
 
 export type OcpiResponse<T> = {
@@ -210,6 +211,7 @@ const ocpiRequestWithLiteralAuthHeaderTokenValue: <T>(
       : {
           offset: linkToNextPage?.offset,
           limit: linkToNextPage?.limit,
+          date_from: linkToNextPage?.date_from
         };
 
   const ocpiResponse = { ...(await resp.json()), nextPage } as OcpiResponse<T>;
@@ -247,7 +249,8 @@ export type NoSuchEndpoint = "no such endpoint";
  */
 export function fetchDataForModule<N extends ModuleID>(
   session: LoginSession,
-  module: OcpiModule<N>
+  module: OcpiModule<N>,
+  dateFrom?: Date
 ): Readable {
   let nextPage: OcpiPageParameters | "done" | "notstarted" = "notstarted";
 
@@ -265,7 +268,7 @@ export function fetchDataForModule<N extends ModuleID>(
 
       let nextPageData;
       try {
-        const firstPageParameters = { offset: 0, limit: size };
+        const firstPageParameters = { offset: 0, limit: size, date_from: dateFrom?.toISOString() };
         nextPageData = await pullPageOfData(
           session,
           module,
@@ -317,10 +320,15 @@ async function pullPageOfData<N extends ModuleID>(
   );
 
   if (moduleUrl) {
+    let queryUrl = `${moduleUrl.url}?offset=${page.offset}&limit=${page.limit}`;
+    if (page.date_from) {
+      queryUrl += `&date_from=${page.date_from}`
+    }
+
     return ocpiRequest(
       session,
       "get",
-      `${moduleUrl.url}?offset=${page.offset}&limit=${page.limit}`,
+      queryUrl,
       fromPartyId
     );
   } else return "no such endpoint";

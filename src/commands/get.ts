@@ -12,7 +12,7 @@ import {
 } from "../privacy/filter";
 import { loadSession } from "../login-session";
 
-export const get = async (moduleName: string, privacyPass?: string) => {
+export const get = async (moduleName: string, dateFrom?: Date, privacyPass?: string) => {
   const module = getModuleByName(moduleName);
 
   if (module == null) {
@@ -48,7 +48,7 @@ export const get = async (moduleName: string, privacyPass?: string) => {
     );
   }
 
-  const ocpiObjectStream = fetchDataForModule(session, module);
+  const ocpiObjectStream = fetchDataForModule(session, module, dateFrom);
 
   const privacyFilteringStream = new Transform({
     objectMode: true,
