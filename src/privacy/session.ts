@@ -1,9 +1,9 @@
-import { PrivacyDescriptor } from "./filter";
+import { PrivacyDescriptor } from "./filter.js";
 import {
   cdrTokenDescriptor,
   chargingPeriodDescriptor,
   privatePriceDescriptor,
-} from "./common";
+} from "./common.js";
 
 export const sessionDescriptorV211: PrivacyDescriptor = {
   country_code: "pass",

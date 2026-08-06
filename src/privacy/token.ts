@@ -1,4 +1,4 @@
-import { PrivacyDescriptor } from "./filter";
+import { PrivacyDescriptor } from "./filter.js";
 
 const energyContractDescriptor: PrivacyDescriptor = {
   supplier_name: "na",

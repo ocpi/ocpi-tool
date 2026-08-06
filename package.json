@@ -4,7 +4,7 @@
   "description": "A command-line tool for exporting data from OCPI platforms",
   "main": "dist/index.js",
   "scripts": {
-    "test": "jest --coverage",
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --coverage",
     "build": "tsc -b"
   },
   "repository": {
@@ -22,6 +22,7 @@
   "bugs": {
     "url": "https://github.com/ocpi/ocpi-tool/issues"
   },
+  "type": "module",
   "homepage": "https://github.com/ocpi/ocpi-tool#readme",
   "devDependencies": {
     "@jest/globals": "^29.0.0",

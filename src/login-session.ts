@@ -1,5 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { OcpiVersion, OcpiEndpoint } from "./ocpi-request";
+import { OcpiVersion, OcpiEndpoint } from "./ocpi-request.js";
 
 export type LoginSession = {
   token: string;

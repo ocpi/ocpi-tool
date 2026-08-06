@@ -5,7 +5,7 @@ import {
   isDescriptorModificationError,
   modifyDescriptorToPass,
   PrivacyDescriptor,
-} from "./filter";
+} from "./filter.js";
 
 describe("The Client Owned Object Privacy filter", () => {
   test("fills fields with 'na' in the descriptor with '#NA'", () => {

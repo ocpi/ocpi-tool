@@ -3,8 +3,8 @@ import {
   OcpiResponse,
   ocpiRequestRetryingAuthTokenBase64,
   OcpiVersion,
-} from "../ocpi-request";
-import { setSession } from "../login-session";
+} from "../ocpi-request.js";
+import { setSession } from "../login-session.js";
 
 export const INPUT_PARTY_ID_REGEX = /^[A-Z]{2}-?[A-Z0-9]{3}$/i;
 

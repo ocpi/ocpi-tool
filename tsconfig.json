@@ -3,12 +3,12 @@
     "esModuleInterop": true,
     "declaration": true,
     "importHelpers": true,
-    "module": "commonjs",
+    "module": "nodenext",
     "outDir": "dist",
     "rootDir": "src",
     "sourceMap": true,
     "strict": true,
-    "target": "es2019"
+    "target": "es2022"
   },
   "include": [
     "src/**/*"

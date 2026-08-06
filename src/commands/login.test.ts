@@ -1,6 +1,6 @@
 import { describe, expect, jest, test, beforeEach } from "@jest/globals";
-import { OcpiResponse } from "../ocpi-request";
-import { login } from "./login";
+import { OcpiResponse } from "../ocpi-request.js";
+import { login } from "./login.js";
 import { mkdir, mkdtemp, readFile, rm, rmdir } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";

@@ -2,8 +2,8 @@ import { describe, expect, test } from "@jest/globals";
 import { mkdtemp, rmdir } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { get } from "./get";
-import { NOT_LOGGED_IN_ERROR_MESSAGE } from "../login-session";
+import { get } from "./get.js";
+import { NOT_LOGGED_IN_ERROR_MESSAGE } from "../login-session.js";
 
 describe("the get command", () => {
   test("fails when there is no OCPI session file", async () => {

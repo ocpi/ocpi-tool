@@ -1,12 +1,12 @@
-import { locationDescriptorV211 } from "./location";
+import { locationDescriptorV211 } from "./location.js";
 import {
   chargingPeriodDescriptor,
   cdrTokenDescriptor,
   geoLocationDescriptor,
   privatePriceDescriptor,
-} from "./common";
-import { PrivacyDescriptor } from "./filter";
-import { tariffDescriptor } from "./tariff";
+} from "./common.js";
+import { PrivacyDescriptor } from "./filter.js";
+import { tariffDescriptor } from "./tariff.js";
 
 const cdrLocationDescriptor: PrivacyDescriptor = {
   id: "pass",

@@ -1,7 +1,7 @@
 import { Readable } from "node:stream";
 import { randomUUID } from "node:crypto";
 import parse from "parse-link-header";
-import { LoginSession } from "./login-session";
+import { LoginSession } from "./login-session.js";
 
 // A bunch of TODOs at this point:
 //  * better error reporting: not logged in, unexpected HTTP error, auth failure...

@@ -1,10 +1,10 @@
-import { ModuleID, OcpiVersion } from "../ocpi-request";
+import { ModuleID, OcpiVersion } from "../ocpi-request.js";
 
-import { locationDescriptorV211, locationDescriptorV221 } from "./location";
-import { sessionDescriptorV211, sessionDescriptorV221 } from "./session";
-import { cdrDescriptorV211, cdrDescriptorV221 } from "./cdr";
-import { tariffDescriptor } from "./tariff";
-import { tokenDescriptor } from "./token";
+import { locationDescriptorV211, locationDescriptorV221 } from "./location.js";
+import { sessionDescriptorV211, sessionDescriptorV221 } from "./session.js";
+import { cdrDescriptorV211, cdrDescriptorV221 } from "./cdr.js";
+import { tariffDescriptor } from "./tariff.js";
+import { tokenDescriptor } from "./token.js";
 
 export type PrivacyDescriptor =
   | ObjectDescriptor

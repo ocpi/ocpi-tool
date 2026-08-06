@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import { InvalidArgumentError } from "commander";
-import parseDate from "./parseDate";
+import parseDate from "./parseDate.js";
 
 describe("Date argument parser", () => {
   it("should coerse ISO 8601 strings to objects", () => {

@@ -1,7 +1,7 @@
 import { exit, stderr, stdout } from "node:process";
 import { pipeline } from "node:stream/promises";
 import { Transform } from "node:stream";
-import { fetchDataForModule, getModuleByName, ModuleID } from "../ocpi-request";
+import { fetchDataForModule, getModuleByName, ModuleID } from "../ocpi-request.js";
 import {
   DescriptorModificationError,
   filter,
@@ -9,8 +9,8 @@ import {
   modifyDescriptorToPass,
   modulePrivacyDescriptors,
   PrivacyDescriptor,
-} from "../privacy/filter";
-import { loadSession } from "../login-session";
+} from "../privacy/filter.js";
+import { loadSession } from "../login-session.js";
 
 export const get = async (moduleName: string, dateFrom?: Date, privacyPass?: string) => {
   const module = getModuleByName(moduleName);

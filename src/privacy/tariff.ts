@@ -2,8 +2,8 @@ import {
   energyMixDescriptor,
   privateDisplayTextDescriptor,
   privatePriceDescriptor,
-} from "./common";
-import { PrivacyDescriptor } from "./filter";
+} from "./common.js";
+import { PrivacyDescriptor } from "./filter.js";
 
 const priceComponentDescriptor: PrivacyDescriptor = {
   type: "pass",

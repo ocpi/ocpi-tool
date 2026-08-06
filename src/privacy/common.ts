@@ -1,4 +1,4 @@
-import { PrivacyDescriptor } from "./filter";
+import { PrivacyDescriptor } from "./filter.js";
 
 export const cdrDimensionDescriptor: PrivacyDescriptor = {
   type: "na",

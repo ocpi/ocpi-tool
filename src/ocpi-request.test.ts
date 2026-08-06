@@ -2,7 +2,7 @@ import { describe, expect, jest, test, beforeEach } from "@jest/globals";
 import {
   OcpiResponse,
   ocpiRequestRetryingAuthTokenBase64,
-} from "./ocpi-request";
+} from "./ocpi-request.js";
 
 const mockOcpiResponse: OcpiResponse<{}> = {
   data: [],
